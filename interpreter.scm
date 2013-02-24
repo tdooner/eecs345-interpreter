@@ -50,12 +50,11 @@
       ((eq? (car stmt) '%) (interpret-mod stmt env))
 )))
 
-; todo: apparently we should allow declarations/initializations simultaneously,
-; e.g. '(var x 10) should call interpret-declare and then interpret-assign (or
-; something like that)
 (define interpret-declare
   (lambda (stmt env)
-    (add-to-environment (cadr stmt) (cddr stmt) env)))
+    (cond
+      ((null? (cddr stmt)) (add-to-environment (cadr stmt) '(None) env))
+      (else (add-to-environment (cadr stmt) (cddr stmt) env)))))
 
 (define interpret-assign
   (lambda (stmt env)
@@ -93,9 +92,9 @@
 ; declares a variable and adds it to the environment with the value 'None
 ; for "var x;"
 (define add-to-environment
-  (lambda (binding env)
+  (lambda (binding value env)
     (if (not (declared? binding env))
-      (cons (cons binding (cons 'None '())) env)
+      (cons (cons binding value) env)
       (error "You have already declared this variable!"))))
 
 ; updates a variable that is already in the environment with a new value
