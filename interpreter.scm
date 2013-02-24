@@ -42,12 +42,13 @@
     (cond
       ((null? stmt) 'None)
       ((number? stmt) stmt)
+      ((atom? stmt) (get-environment stmt env))
       ((eq? (car stmt) '=) (interpret-assign-value stmt env))
-      ((eq? (car stmt) '+) (interpret-add stmt env))
-      ((eq? (car stmt) '-) (interpret-sub stmt env))
-      ((eq? (car stmt) '*) (interpret-mul stmt env))
-      ((eq? (car stmt) '/) (interpret-div stmt env))
-      ((eq? (car stmt) '%) (interpret-mod stmt env))
+      ((eq? (car stmt) '+) ((interpret-binary +) stmt env))
+      ((eq? (car stmt) '-) ((interpret-binary -) env))
+      ((eq? (car stmt) '*) ((interpret-binary *) stmt env))
+      ((eq? (car stmt) '/) ((interpret-binary /) stmt env))
+      ((eq? (car stmt) '%) ((interpret-binary remainder) stmt env))
 )))
 
 (define interpret-declare
@@ -56,9 +57,10 @@
       ((null? (cddr stmt)) (add-to-environment (cadr stmt) '(None) env))
       (else (add-to-environment (cadr stmt) (cddr stmt) env)))))
 
+; TODO: ask Tom why he had that crap out to the left
 (define interpret-assign
   (lambda (stmt env) 
-      (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) (interpret-stmt (caddr stmt) env))))
+      (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) env))); (interpret-stmt (caddr stmt) env))))
 
 (define interpret-assign-value
   (lambda (stmt env)
@@ -66,25 +68,10 @@
       ((number? (caddr stmt)) (caddr stmt))
       (else (interpret-stmt-value stmt)))))
 
-(define interpret-add
-  (lambda (stmt env)
-    (+ (cadr stmt) (caddr stmt))))
-
-(define interpret-sub
-  (lambda (stmt env)
-    (- (cadr stmt) (caddr stmt))))
-
-(define interpret-mul
-  (lambda (stmt env)
-    (* (cadr stmt) (caddr stmt))))
-
-(define interpret-div
-  (lambda (stmt env)
-    (/ (cadr stmt) (caddr stmt))))
-
-(define interpret-mod
-  (lambda (stmt env)
-    (remainder (cadr stmt) (caddr stmt))))
+(define interpret-binary
+  (lambda (op)
+    (lambda (stmt env)
+      (op (interpret-stmt-value (cadr stmt) env) (interpret-stmt-value (caddr stmt) env)))))
 
 ; declares a variable and adds it to the environment with the value 'None
 ; for "var x;"
@@ -92,7 +79,7 @@
   (lambda (binding value env)
     (if (not (declared? binding env))
       (cons (cons binding value) env)
-      (error "You have already declared this variable!"))))
+      (error "Error: You have already declared this variable!"))))
 
 ; updates a variable that is already in the environment with a new value
 ; for "x = 5;"
@@ -106,6 +93,13 @@
         (cons (car env) (update-environment binding value (cdr env))))
       )))
 
+(define get-environment
+  (lambda (binding env)
+    (cond
+      ((null? env) (error "Error: This variable has not been declared yet!"))
+      ((eq? (car (car env)) binding) (cadr (car env)))
+      (else (get-environment binding (cdr env))))))
+
 ; #t, if binding is in env
 ; #f, else
 (define declared?
@@ -114,3 +108,7 @@
       ((null? env) #f)
       ((eq? (car (car env)) binding) #t)
       (else (declared? binding (cdr env))))))
+
+(define atom?
+  (lambda (x)
+    (not (or (pair? x) (null? x)))))
