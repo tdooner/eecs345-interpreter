@@ -19,11 +19,12 @@
   (lambda (stmt env)
     (cond
       ((eq? (car stmt) '=) (interpret-assign stmt env))
+      ((eq? (car stmt) '+) (interpret-add stmt env))
+      ((eq? (car stmt) '-) (interpret-sub stmt env))
+      ((eq? (car stmt) '*) (interpret-mul stmt env))
+      ((eq? (car stmt) '/) (interpret-div stmt env))
+
       ; and so forth, for all the stuff we need...
-      ;((eq? (car stmt) '+) (interpret-assign (stmt env)))
-      ;((eq? (car stmt) '-) (interpret-assign (stmt env)))
-      ;((eq? (car stmt) '*) (interpret-assign (stmt env)))
-      ;((eq? (car stmt) '/) (interpret-assign (stmt env)))
       ;((eq? (car stmt) '%) (interpret-assign (stmt env)))
       ;((eq? (car stmt) '-) (interpret-assign (stmt env)))  ;unary -
       ;
@@ -41,7 +42,26 @@
 
 (define interpret-assign
   (lambda (stmt env)
-    (update-environment (cadr stmt) (caddr stmt) env)))
+    (cond
+      ((list? (caddr stmt)) (update-environment (cadr stmt) (interpret-stmt (caddr stmt) env) env))
+      (else
+        (update-environment (cadr stmt) (caddr stmt) env)))))
+
+(define interpret-add
+  (lambda (stmt env)
+    (+ (cadr stmt) (caddr stmt))))
+
+(define interpret-sub
+  (lambda (stmt env)
+    (- (cadr stmt) (caddr stmt))))
+
+(define interpret-mul
+  (lambda (stmt env)
+    (* (cadr stmt) (caddr stmt))))
+
+(define interpret-div
+  (lambda (stmt env)
+    (/ (cadr stmt) (caddr stmt))))
 
 (define update-environment
   (lambda (binding value env)
