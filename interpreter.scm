@@ -22,6 +22,9 @@
       ; and so forth, for all the stuff we need...
       ;((eq? (car stmt) '-) (interpret-assign (stmt env)))  ;unary -
       ;
+      ; todo: create a function called something like interpret-stmt-truth that
+      ; determines the truthiness of a parsetree root and wire it in here when
+      ; we see an "if"
       ;((eq? (car stmt) '<) (interpret-assign (stmt env)))
       ;((eq? (car stmt) '>) (interpret-assign (stmt env)))
       ;((eq? (car stmt) '>=) (interpret-assign (stmt env)))
@@ -107,6 +110,8 @@
         (cons (car env) (update-environment binding value (cdr env))))
       )))
 
+; #t, if binding is in env
+; #f, else
 (define declared?
   (lambda (binding env)
     (cond
