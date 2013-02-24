@@ -57,11 +57,8 @@
       (else (add-to-environment (cadr stmt) (cddr stmt) env)))))
 
 (define interpret-assign
-  (lambda (stmt env)
-    (if (not (declared? (cadr stmt) env))
-      (error "Error: Trying to assign to an undeclared variable!")
-      (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) (interpret-stmt (caddr stmt) env)))
-))
+  (lambda (stmt env) 
+      (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) (interpret-stmt (caddr stmt) env))))
 
 (define interpret-assign-value
   (lambda (stmt env)
@@ -102,7 +99,7 @@
 (define update-environment
   (lambda (binding value env)
     (cond
-      ((null? env) '())
+      ((null? env) (error "Error: Trying to assign to an undeclared variable!"))
       ((eq? (car (car env)) binding)
        (cons (cons binding (cons value '())) (cdr env)))
       (else
