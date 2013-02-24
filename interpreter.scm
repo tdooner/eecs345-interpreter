@@ -16,9 +16,10 @@
   (lambda (stmt env)
     (cond
       ((number? stmt) env)
+      ((eq? (car stmt) 'var) (interpret-declare stmt env))
       ((eq? (car stmt) '=) (interpret-assign stmt env))
+
       ; and so forth, for all the stuff we need...
-      ;((eq? (car stmt) '%) (interpret-assign (stmt env)))
       ;((eq? (car stmt) '-) (interpret-assign (stmt env)))  ;unary -
       ;
       ;((eq? (car stmt) '<) (interpret-assign (stmt env)))
@@ -36,18 +37,28 @@
 (define interpret-stmt-value
   (lambda (stmt env)
     (cond
+      ((null? stmt) 'None)
       ((number? stmt) stmt)
       ((eq? (car stmt) '=) (interpret-assign-value stmt env))
       ((eq? (car stmt) '+) (interpret-add stmt env))
       ((eq? (car stmt) '-) (interpret-sub stmt env))
       ((eq? (car stmt) '*) (interpret-mul stmt env))
       ((eq? (car stmt) '/) (interpret-div stmt env))
+      ((eq? (car stmt) '%) (interpret-mod stmt env))
 )))
 
+; todo: apparently we should allow declarations/initializations simultaneously,
+; e.g. '(var x 10) should call interpret-declare and then interpret-assign (or
+; something like that)
+(define interpret-declare
+  (lambda (stmt env)
+    (add-to-environment (cadr stmt) (cddr stmt) env)))
 
 (define interpret-assign
   (lambda (stmt env)
-    (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) (interpret-stmt (caddr stmt) env))
+    (if (not (declared? (cadr stmt) env))
+      (error "Error: Trying to assign to an undeclared variable!")
+      (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) (interpret-stmt (caddr stmt) env)))
 ))
 
 (define interpret-assign-value
@@ -72,10 +83,33 @@
   (lambda (stmt env)
     (/ (cadr stmt) (caddr stmt))))
 
+(define interpret-mod
+  (lambda (stmt env)
+    (remainder (cadr stmt) (caddr stmt))))
+
+; declares a variable and adds it to the environment with the value 'None
+; for "var x;"
+(define add-to-environment
+  (lambda (binding env)
+    (if (not (declared? binding env))
+      (cons (cons binding (cons 'None '())) env)
+      (error "You have already declared this variable!"))))
+
+; updates a variable that is already in the environment with a new value
+; for "x = 5;"
 (define update-environment
   (lambda (binding value env)
     (cond
-      ((null? env) (cons (cons binding (cons value '())) '()))
-      ((eq? (car (car env)) binding) (cons (cons binding (cons value '())) (cdr env)))
-      (else (cons (car env) (update-environment binding value (cdr env))))
+      ((null? env) '())
+      ((eq? (car (car env)) binding)
+       (cons (cons binding (cons value '())) (cdr env)))
+      (else
+        (cons (car env) (update-environment binding value (cdr env))))
       )))
+
+(define declared?
+  (lambda (binding env)
+    (cond
+      ((null? env) #f)
+      ((eq? (car (car env)) binding) #t)
+      (else (declared? binding (cdr env))))))
