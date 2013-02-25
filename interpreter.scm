@@ -78,7 +78,7 @@
 
 (define interpret-assign
   (lambda (stmt env) 
-    (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) env)))
+    (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) (interpret-stmt (caddr stmt) env))))
 
 (define interpret-assign-value
   (lambda (stmt env)
