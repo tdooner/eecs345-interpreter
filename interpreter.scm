@@ -1,6 +1,7 @@
 (load "verySimpleParser.scm") (define interpret
   (lambda (filename)
-    (interpret-statement-list (parser filename) '((true #t) (false #f) (return None)))))
+    (get-environment 'return 
+      (interpret-statement-list (parser filename) '((true #t) (false #f) (return None))))))
 
 (define interpret-statement-list
   (lambda (parsetree env)
