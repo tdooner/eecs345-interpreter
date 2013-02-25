@@ -44,7 +44,7 @@
       ((atom? stmt) (get-environment stmt env))
       ((eq? (car stmt) '=) (interpret-assign-value stmt env))
       ((eq? (car stmt) '+) ((interpret-binary +) stmt env))
-      ((eq? (car stmt) '-) ((interpret-binary -) env))
+      ((eq? (car stmt) '-) (interpret-negative stmt env))
       ((eq? (car stmt) '*) ((interpret-binary *) stmt env))
       ((eq? (car stmt) '/) ((interpret-binary /) stmt env))
       ((eq? (car stmt) '%) ((interpret-binary remainder) stmt env))
@@ -54,22 +54,28 @@
   (lambda (stmt env)
     (cond
       ((null? (cddr stmt)) (add-to-environment (cadr stmt) '(None) env))
-      (else (add-to-environment (cadr stmt) (cddr stmt) env)))))
+      (else (add-to-environment (cadr stmt) (cons (interpret-stmt-value (caddr stmt) env) '()) env)))))
 
 (define interpret-assign
   (lambda (stmt env) 
-      (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) env)))
+    (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) env)))
 
 (define interpret-assign-value
   (lambda (stmt env)
     (cond
       ((number? (caddr stmt)) (caddr stmt))
-      (else (interpret-stmt-value stmt)))))
+      (else (interpret-stmt-value stmt env)))))
 
 (define interpret-binary
   (lambda (op)
     (lambda (stmt env)
       (op (interpret-stmt-value (cadr stmt) env) (interpret-stmt-value (caddr stmt) env)))))
+
+(define interpret-negative
+  (lambda (stmt env)
+    (cond
+      ((eq? (length stmt) 3) ((interpret-binary -) stmt env))
+      (else (- 0 (interpret-stmt-value (cadr stmt) env))))))
 
 ; declares a variable and adds it to the environment with the value 'None
 ; for "var x;"
