@@ -1,3 +1,7 @@
+; Interpreter Project, Part 1
+; Tom Dooner (ted27)
+; Brian Stack (bis12)
+
 (load "verySimpleParser.scm")
 
 ; The heart of it all. Creates a default environment that is used, and at the
