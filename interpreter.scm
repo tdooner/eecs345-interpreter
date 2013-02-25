@@ -1,8 +1,6 @@
-(load "verySimpleParser.scm")
-
-(define interpret
+(load "verySimpleParser.scm") (define interpret
   (lambda (filename)
-    (interpret-statement-list (parser filename) '())))
+    (interpret-statement-list (parser filename) '((true #t) (false #f) (return None)))))
 
 (define interpret-statement-list
   (lambda (parsetree env)
@@ -17,9 +15,9 @@
       ((number? stmt) env)
       ((eq? (car stmt) 'var) (interpret-declare stmt env))
       ((eq? (car stmt) '=) (interpret-assign stmt env))
+      ((eq? (car stmt) 'if) (interpret-branch stmt env))
+      ((eq? (car stmt) 'return) (interpret-ret stmt env))
 
-      ; and so forth, for all the stuff we need...
-      ;((eq? (car stmt) '-) (interpret-assign (stmt env)))  ;unary -
       ;
       ; todo: create a function called something like interpret-stmt-truth that
       ; determines the truthiness of a parsetree root and wire it in here when
@@ -48,6 +46,28 @@
       ((eq? (car stmt) '*) ((interpret-binary *) stmt env))
       ((eq? (car stmt) '/) ((interpret-binary /) stmt env))
       ((eq? (car stmt) '%) ((interpret-binary remainder) stmt env))
+)))
+
+(define interpret-ret
+  (lambda (stmt env)
+    (update-environment 'return (interpret-stmt-value (cadr stmt) env) env)))
+
+(define interpret-branch
+  (lambda (stmt env)
+    (if (interpret-bool (cadr stmt) env)
+      (interpret-stmt (caddr stmt) env)
+      (interpret-stmt (cadddr stmt) env))))
+
+(define interpret-bool
+  (lambda (stmt env)
+    (cond
+      ((atom? stmt) (get-environment stmt env))
+      ((eq? (car stmt) '==) ((interpret-binary eq?) stmt env))
+      ((eq? (car stmt) '!=) ((interpret-binary (lambda (x y) (not (eq? x y)))) stmt env))
+      ((eq? (car stmt) '<) ((interpret-binary <) stmt env))
+      ((eq? (car stmt) '>) ((interpret-binary >) stmt env))
+      ((eq? (car stmt) '<=) ((interpret-binary <=) stmt env))
+      ((eq? (car stmt) '>=) ((interpret-binary >=) stmt env))
 )))
 
 (define interpret-declare
