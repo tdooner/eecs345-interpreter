@@ -2,8 +2,7 @@
 
 (define interpret
   (lambda (filename)
-    (let ((env '()))
-      (interpret-statement-list (parser filename) env))))
+    (interpret-statement-list (parser filename) '())))
 
 (define interpret-statement-list
   (lambda (parsetree env)
@@ -57,10 +56,9 @@
       ((null? (cddr stmt)) (add-to-environment (cadr stmt) '(None) env))
       (else (add-to-environment (cadr stmt) (cddr stmt) env)))))
 
-; TODO: ask Tom why he had that crap out to the left
 (define interpret-assign
   (lambda (stmt env) 
-      (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) env))); (interpret-stmt (caddr stmt) env))))
+      (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) env)))
 
 (define interpret-assign-value
   (lambda (stmt env)
