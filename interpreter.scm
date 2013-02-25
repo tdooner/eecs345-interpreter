@@ -1,6 +1,7 @@
 (load "verySimpleParser.scm") (define interpret
   (lambda (filename)
-    (interpret-statement-list (parser filename) '((true #t) (false #f) (return None)))))
+    (get-environment 'return 
+      (interpret-statement-list (parser filename) '((true #t) (false #f) (return None))))))
 
 (define interpret-statement-list
   (lambda (parsetree env)
@@ -68,6 +69,9 @@
       ((eq? (car stmt) '>) ((interpret-binary >) stmt env))
       ((eq? (car stmt) '<=) ((interpret-binary <=) stmt env))
       ((eq? (car stmt) '>=) ((interpret-binary >=) stmt env))
+      ((eq? (car stmt) '&&) ((interpret-binary (lambda (x y) (and x y))) stmt env))
+      ((eq? (car stmt) '||) ((interpret-binary (lambda (x y) (or x y))) stmt env))
+      ((eq? (car stmt) '!) (interpret-not stmt env))
 )))
 
 (define interpret-declare
@@ -96,6 +100,10 @@
     (cond
       ((eq? (length stmt) 3) ((interpret-binary -) stmt env))
       (else (- 0 (interpret-stmt-value (cadr stmt) env))))))
+
+(define interpret-not
+  (lambda (stmt env)
+    (not (interpret-stmt-value (cadr stmt) env))))
 
 ; declares a variable and adds it to the environment with the value 'None
 ; for "var x;"
