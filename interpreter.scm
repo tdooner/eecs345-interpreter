@@ -1,6 +1,8 @@
-(load "verySimpleParser.scm") (define interpret
+(load "verySimpleParser.scm")
+
+(define interpret
   (lambda (filename)
-    (get-environment 'return 
+    (get-environment 'return
       (interpret-statement-list (parser filename) '((true #t) (false #f) (return None))))))
 
 (define interpret-statement-list
@@ -14,26 +16,13 @@
   (lambda (stmt env)
     (cond
       ((number? stmt) env)
+      ((atom? stmt) env)
+      ((member? (car stmt) '(+ - * / %)) env)
       ((eq? (car stmt) 'var) (interpret-declare stmt env))
       ((eq? (car stmt) '=) (interpret-assign stmt env))
       ((eq? (car stmt) 'if) (interpret-branch stmt env))
-      ((eq? (car stmt) 'return) (interpret-ret stmt env))
-
-      ;
-      ; todo: create a function called something like interpret-stmt-truth that
-      ; determines the truthiness of a parsetree root and wire it in here when
-      ; we see an "if"
-      ;((eq? (car stmt) '<) (interpret-assign (stmt env)))
-      ;((eq? (car stmt) '>) (interpret-assign (stmt env)))
-      ;((eq? (car stmt) '>=) (interpret-assign (stmt env)))
-      ;((eq? (car stmt) '<=) (interpret-assign (stmt env)))
-      ;((eq? (car stmt) '!=) (interpret-assign (stmt env)))
-      ;((eq? (car stmt) '==) (interpret-assign (stmt env)))
-      ;
-      ;((eq? (car stmt) '&&) (interpret-assign (stmt env)))
-      ;((eq? (car stmt) '||) (interpret-assign (stmt env)))
-      ;((eq? (car stmt) '!) (interpret-assign (stmt env)))  ;unary !
-)))
+      ((eq? (car stmt) 'return) (interpret-ret stmt env)))
+))
 
 (define interpret-stmt-value
   (lambda (stmt env)
@@ -53,13 +42,23 @@
   (lambda (stmt env)
     (update-environment 'return (interpret-stmt-value (cadr stmt) env) env)))
 
+; called with something like:
+; '(if (> (= x (+ x 1)) y) (return x) (return y))
 (define interpret-branch
   (lambda (stmt env)
-    (if (interpret-bool (cadr stmt) env)
-      (interpret-stmt (caddr stmt) env)
-      (interpret-stmt (cadddr stmt) env))))
+    (if (interpret-bool-value (cadr stmt) (interpret-bool-env (cadr stmt) env))
+      (interpret-stmt (caddr stmt) (interpret-bool-env (cadr stmt) env))
+      (interpret-stmt (cadddr stmt) (interpret-bool-env (cadr stmt) env)))))
 
-(define interpret-bool
+; called with something like:
+; '(> (= x (+ x 1)) y)
+(define interpret-bool-env
+  (lambda (stmt env)
+    (interpret-stmt (cadr stmt) (interpret-stmt (caddr stmt) env))))
+
+; called with something like:
+; '(> (= x (+ x 1)) y)
+(define interpret-bool-value
   (lambda (stmt env)
     (cond
       ((atom? stmt) (get-environment stmt env))
@@ -80,15 +79,17 @@
       ((null? (cddr stmt)) (add-to-environment (cadr stmt) '(None) env))
       (else (add-to-environment (cadr stmt) (cons (interpret-stmt-value (caddr stmt) env) '()) env)))))
 
+; called with, e.g.:
+; (= x (+ x 1))
 (define interpret-assign
-  (lambda (stmt env) 
+  (lambda (stmt env)
     (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) (interpret-stmt (caddr stmt) env))))
 
 (define interpret-assign-value
   (lambda (stmt env)
     (cond
       ((number? (caddr stmt)) (caddr stmt))
-      (else (interpret-stmt-value stmt env)))))
+      (else (interpret-stmt-value (caddr stmt) env)))))
 
 (define interpret-binary
   (lambda (op)
@@ -140,6 +141,13 @@
       ((null? env) #f)
       ((eq? (car (car env)) binding) #t)
       (else (declared? binding (cdr env))))))
+
+(define member?
+  (lambda (item l)
+    (cond
+      ((null? l) #f)
+      ((eq? (car l) item) #t)
+      (else (member? item (cdr l))))))
 
 (define atom?
   (lambda (x)
