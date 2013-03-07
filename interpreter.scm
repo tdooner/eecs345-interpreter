@@ -2,7 +2,7 @@
 ; Tom Dooner (ted27)
 ; Brian Stack (bis12)
 
-(load "verySimpleParser.scm")
+(load "loopSimpleParser.scm")
 
 ; The heart of it all. Creates a default environment that is used, and at the
 ; end of interpreting the list of things, returns whatever value is put in the
