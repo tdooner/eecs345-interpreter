@@ -2,6 +2,7 @@
 
 function cleanup {
     rm -f tests/temp.c
+    rm -f tests/results.c
 }
 trap cleanup EXIT
 
@@ -24,8 +25,10 @@ result=`echo $result | sed -e 's/^ *//g'`
 
 if [[ $value = $result || ( $value = "ERROR" && $result ) ]] ; then
     echo -e "\e[00;32m[passed] $desc \e[00m"
+    echo pass >> tests/results.txt
     exit
 else
     echo -e "\e[00;31m[failed] $desc -- Expected \"$value\", got \"$result\" ($1)\e[00m"
+    echo fail >> tests/results.txt
     exit
 fi
