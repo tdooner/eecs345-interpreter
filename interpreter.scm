@@ -46,7 +46,7 @@
       ((eq? (car stmt) '+) ((interpret-binary +) stmt env))
       ((eq? (car stmt) '-) (interpret-negative stmt env))
       ((eq? (car stmt) '*) ((interpret-binary *) stmt env))
-      ((eq? (car stmt) '/) ((interpret-binary /) stmt env))
+      ((eq? (car stmt) '/) ((interpret-binary (lambda (x y) (floor (/ x y)))) stmt env))
       ((eq? (car stmt) '%) ((interpret-binary remainder) stmt env))
       ((boolean-stmt? stmt) (interpret-bool-value stmt env))
 )))
