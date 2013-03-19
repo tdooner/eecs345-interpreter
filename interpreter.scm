@@ -27,17 +27,21 @@
     (cond
       ((number? stmt) env)
       ((atom? stmt) env)
-      ; unary operation like (- (= x 3))
-      ((eq? (car stmt) '-)
+
+      ; unary operations like (- (= x 3)) and (! (== (= x 3) y))
+      ((or (eq? (car stmt) '!)
+           (and (eq? (car stmt) '-) (null? (cddr stmt))))
        (interpret-stmt (cadr stmt) env))
+
       ; binary operation like (+ (= x 2) 3)
-      ((member? (car stmt) '(+ - * / %))
+      ((or (member? (car stmt) '(+ - * / % -))
+           (boolean-stmt? stmt))
        (interpret-stmt (caddr stmt) (interpret-stmt (cadr stmt) env)))
+
       ((eq? (car stmt) 'var) (interpret-declare stmt env))
       ((eq? (car stmt) '=) (interpret-assign stmt env))
       ((eq? (car stmt) 'if) (interpret-branch stmt env))
       ((eq? (car stmt) 'return) (interpret-ret stmt env))
-      ((boolean-stmt? stmt) env)
 )))
 
 ; Returns the value of the stmt based on the environment that is passed in.
@@ -67,10 +71,11 @@
 (define interpret-branch
   (lambda (stmt env)
     (if (interpret-bool-value (cadr stmt) (interpret-bool-env (cadr stmt) env))
+      ; if true
       (interpret-stmt (caddr stmt) (interpret-bool-env (cadr stmt) env))
-      ; if there is no else to the if:
+      ; if false
       (if (null? (cdddr stmt))
-        env
+        (interpret-bool-env (cadr stmt) env)   ; <- if there is no "else"
         (interpret-stmt (cadddr stmt) (interpret-bool-env (cadr stmt) env))))))
 
 ; Handles '(> (= x (+ x 1)) y)
