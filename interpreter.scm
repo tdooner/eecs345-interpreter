@@ -3,6 +3,8 @@
 ; Brian Stack (bis12)
 
 (load "loopSimpleParser.scm")
+(define the-begin-environment
+ '(((true false return) (#t #f None))))
 
 ; The heart of it all. Creates a default environment that is used, and at the
 ; end of interpreting the list of things, returns whatever value is put in the
@@ -10,7 +12,9 @@
 (define interpret
   (lambda (filename)
     (display (true-or-falsify (get-environment 'return
-      (interpret-statement-list (parser filename) '((true #t) (false #f) (return None))))))))
+      (interpret-statement-list (parser filename) the-begin-environment))
+    ))
+))
 
 (define interpret-statement-list
   (lambda (parsetree env)
@@ -110,9 +114,9 @@
 (define interpret-declare
   (lambda (stmt env)
     (cond
-      ((null? (cddr stmt)) (add-to-environment (cadr stmt) '(None) env))
+      ((null? (cddr stmt)) (add-to-environment (cadr stmt) 'None env))
       (else (add-to-environment (cadr stmt)
-              (cons (interpret-stmt-value (caddr stmt) env) '())
+              (interpret-stmt-value (caddr stmt) env)
               (interpret-stmt (caddr stmt) env))))))
 
 ; Handles '(= x (+ x 1))
@@ -153,9 +157,18 @@
 ; new environment
 (define add-to-environment
   (lambda (binding value env)
-    (if (not (declared? binding env))
-      (cons (cons binding value) env)
-      (error "Error: You have already declared this variable!"))))
+      (cons
+        (add-to-layer binding value (car env))
+        (cdr env))
+))
+
+(define add-to-layer
+  (lambda (binding value layer)
+    (if (declared? binding layer)
+      (error "Error: You have already declared this variable in this scope!")
+      (cons
+        (cons binding (car layer))
+        (cons (cons value (car (cdr layer))) '())))))
 
 ; Helper function to updates the value of a variable in the environment and
 ; return the new environment
@@ -163,19 +176,42 @@
   (lambda (binding value env)
     (cond
       ((null? env) (error "Error: Trying to assign to an undeclared variable!"))
-      ((eq? (car (car env)) binding)
-       (cons (cons binding (cons value '())) (cdr env)))
+      ((member? binding (car (car env)))
+       (cons (set-layer binding value (car env)) (cdr env)))
       (else
         (cons (car env) (update-environment binding value (cdr env))))
       )))
+
+(define set-layer
+  (lambda (binding value layer)
+    (cond
+      ((null? layer) layer)
+      ((eq? (car (car layer)) binding)
+       (cons (car layer) (cons (cons value (cdr (cadr layer))) '())))
+      (else
+        (let
+          ((next-env (set-layer binding value (cons (cdr (car layer)) (cons (cdr (car (cdr layer))) '())))))
+          ; note: here we're using add-to-layer as a utility to do the cons'ing
+          (add-to-layer (car (car layer)) (car (car (cdr layer))) next-env))
+))))
 
 ; Helper function to retrieve the value of a variable from the environment
 (define get-environment
   (lambda (binding env)
     (cond
       ((null? env) (error "Error: This variable has not been declared yet!"))
-      ((eq? (car (car env)) binding) (cadr (car env)))
+      ((member? binding (car (car env))) (get-from-layer binding (car env)))
       (else (get-environment binding (cdr env))))))
+
+; Given a layer in the environment like '((x y z) (1 2 3)) it will look up the
+; value of a binding
+(define get-from-layer
+  (lambda (binding layer)
+    (cond
+      ((null? layer) layer)
+      ((eq? (car (car layer)) binding) (car (car (cdr layer))))
+      (else (get-from-layer binding
+              (cons (cdr (car layer)) (cons (cdr (car (cdr layer))) '())))))))
 
 ; Helper function to convert #t to true and #f to false
 (define true-or-falsify
@@ -185,13 +221,11 @@
       ((eq? #f b) 'false)
       (else b))))
 
-; Helper function to return #t if binding is in the environment and #f if not.
+; Helper function to return #t if binding is in some level of the environment
+; and #f if not.
 (define declared?
-  (lambda (binding env)
-    (cond
-      ((null? env) #f)
-      ((eq? (car (car env)) binding) #t)
-      (else (declared? binding (cdr env))))))
+  (lambda (binding level)
+    (member? binding (car level))))
 
 (define member?
   (lambda (item l)
