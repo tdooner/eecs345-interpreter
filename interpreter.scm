@@ -27,7 +27,12 @@
     (cond
       ((number? stmt) env)
       ((atom? stmt) env)
-      ((member? (car stmt) '(+ - * / %)) env)     ; Environment is not changed
+      ; unary operation like (- (= x 3))
+      ((eq? (car stmt) '-)
+       (interpret-stmt (cadr stmt) env))
+      ; binary operation like (+ (= x 2) 3)
+      ((member? (car stmt) '(+ - * / %))
+       (interpret-stmt (caddr stmt) (interpret-stmt (cadr stmt) env)))
       ((eq? (car stmt) 'var) (interpret-declare stmt env))
       ((eq? (car stmt) '=) (interpret-assign stmt env))
       ((eq? (car stmt) 'if) (interpret-branch stmt env))
