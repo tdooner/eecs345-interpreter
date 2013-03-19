@@ -31,8 +31,9 @@
       ((eq? (car stmt) 'var) (interpret-declare stmt env))
       ((eq? (car stmt) '=) (interpret-assign stmt env))
       ((eq? (car stmt) 'if) (interpret-branch stmt env))
-      ((eq? (car stmt) 'return) (interpret-ret stmt env)))
-))
+      ((eq? (car stmt) 'return) (interpret-ret stmt env))
+      ((boolean-stmt? stmt) env)
+)))
 
 ; Returns the value of the stmt based on the environment that is passed in.
 (define interpret-stmt-value
