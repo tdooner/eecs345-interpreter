@@ -77,7 +77,7 @@
 ; Returns #t or #f based on the environment and the variables
 (define interpret-bool-value
   (lambda (stmt env)
-    (cond
+    (true-or-falsify (cond
       ((atom? stmt) (get-environment stmt env))
       ((eq? (car stmt) '==) ((interpret-binary eq?) stmt env))
       ((eq? (car stmt) '!=) ((interpret-binary (lambda (x y) (not (eq? x y)))) stmt env))
@@ -88,7 +88,7 @@
       ((eq? (car stmt) '&&) ((interpret-binary (lambda (x y) (and x y))) stmt env))
       ((eq? (car stmt) '||) ((interpret-binary (lambda (x y) (or x y))) stmt env))
       ((eq? (car stmt) '!) (interpret-not stmt env))
-)))
+))))
 
 ; Handles '(var x)
 ; Returns updated environment
@@ -119,6 +119,11 @@
   (lambda (op)
     (lambda (stmt env)
       (op (interpret-stmt-value (cadr stmt) env) (interpret-stmt-value (caddr stmt) env)))))
+
+; Helper function to convert #t to true and #f to false
+(define true-or-falsify
+  (lambda (b)
+    (if b 'true 'false)))
 
 ; Helper function for unary or binary subtraction
 (define interpret-negative
