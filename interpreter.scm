@@ -3,16 +3,14 @@
 ; Brian Stack (bis12)
 
 (load "loopSimpleParser.scm")
-(define false #f)
-(define true #t)
 
 ; The heart of it all. Creates a default environment that is used, and at the
 ; end of interpreting the list of things, returns whatever value is put in the
 ; "return" variable in the environment
 (define interpret
   (lambda (filename)
-    (display (get-environment 'return
-      (interpret-statement-list (parser filename) '((true true) (false false) (return None)))))))
+    (display (true-or-falsify (get-environment 'return
+      (interpret-statement-list (parser filename) '((true #t) (false #f) (return None))))))))
 
 (define interpret-statement-list
   (lambda (parsetree env)
@@ -71,13 +69,17 @@
 ; Returns updated environment
 (define interpret-bool-env
   (lambda (stmt env)
-    (interpret-stmt (cadr stmt) (interpret-stmt (caddr stmt) env))))
+    (if (null? (cddr stmt))
+      ; unary boolean operator, i.e. (! x):
+      (interpret-stmt (cadr stmt) env)
+      ; binary boolean operator:
+      (interpret-stmt (cadr stmt) (interpret-stmt (caddr stmt) env)))))
 
 ; Handles '(> (= x (+ x 1)) y)
 ; Returns #t or #f based on the environment and the variables
 (define interpret-bool-value
   (lambda (stmt env)
-    (true-or-falsify (cond
+    (cond
       ((atom? stmt) (get-environment stmt env))
       ((eq? (car stmt) '==) ((interpret-binary eq?) stmt env))
       ((eq? (car stmt) '!=) ((interpret-binary (lambda (x y) (not (eq? x y)))) stmt env))
@@ -88,7 +90,7 @@
       ((eq? (car stmt) '&&) ((interpret-binary (lambda (x y) (and x y))) stmt env))
       ((eq? (car stmt) '||) ((interpret-binary (lambda (x y) (or x y))) stmt env))
       ((eq? (car stmt) '!) (interpret-not stmt env))
-))))
+)))
 
 ; Handles '(var x)
 ; Returns updated environment
@@ -119,11 +121,6 @@
   (lambda (op)
     (lambda (stmt env)
       (op (interpret-stmt-value (cadr stmt) env) (interpret-stmt-value (caddr stmt) env)))))
-
-; Helper function to convert #t to true and #f to false
-(define true-or-falsify
-  (lambda (b)
-    (if b 'true 'false)))
 
 ; Helper function for unary or binary subtraction
 (define interpret-negative
@@ -164,6 +161,14 @@
       ((null? env) (error "Error: This variable has not been declared yet!"))
       ((eq? (car (car env)) binding) (cadr (car env)))
       (else (get-environment binding (cdr env))))))
+
+; Helper function to convert #t to true and #f to false
+(define true-or-falsify
+  (lambda (b)
+    (cond
+      ((eq? #t b) 'true)
+      ((eq? #f b) 'false)
+      (else b))))
 
 ; Helper function to return #t if binding is in the environment and #f if not.
 (define declared?
