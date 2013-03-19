@@ -125,7 +125,9 @@
 (define interpret-binary
   (lambda (op)
     (lambda (stmt env)
-      (op (interpret-stmt-value (cadr stmt) env) (interpret-stmt-value (caddr stmt) env)))))
+      (op
+        (interpret-stmt-value (cadr stmt) env)
+        (interpret-stmt-value (caddr stmt) (interpret-stmt (cadr stmt) env))))))
 
 ; Helper function for unary or binary subtraction
 (define interpret-negative
