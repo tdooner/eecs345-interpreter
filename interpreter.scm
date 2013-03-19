@@ -92,7 +92,9 @@
   (lambda (stmt env)
     (cond
       ((null? (cddr stmt)) (add-to-environment (cadr stmt) '(None) env))
-      (else (add-to-environment (cadr stmt) (cons (interpret-stmt-value (caddr stmt) env) '()) env)))))
+      (else (add-to-environment (cadr stmt)
+              (cons (interpret-stmt-value (caddr stmt) env) '())
+              (interpret-stmt (caddr stmt) env))))))
 
 ; Handles '(= x (+ x 1))
 ; Returns updated environment
