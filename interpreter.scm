@@ -9,8 +9,8 @@
 ; "return" variable in the environment
 (define interpret
   (lambda (filename)
-    (get-environment 'return
-      (interpret-statement-list (parser filename) '((true #t) (false #f) (return None))))))
+    (display (get-environment 'return
+      (interpret-statement-list (parser filename) '((true 'true) (false 'false) (return None)))))))
 
 (define interpret-statement-list
   (lambda (parsetree env)
@@ -47,6 +47,7 @@
       ((eq? (car stmt) '*) ((interpret-binary *) stmt env))
       ((eq? (car stmt) '/) ((interpret-binary /) stmt env))
       ((eq? (car stmt) '%) ((interpret-binary remainder) stmt env))
+      ((boolean-stmt? stmt) (interpret-bool-value stmt env))
 )))
 
 ; Handles '(return x)
@@ -174,3 +175,15 @@
 (define atom?
   (lambda (x)
     (not (or (pair? x) (null? x)))))
+
+(define boolean-stmt?
+  (lambda (stmt)
+    (or (eq? (car stmt) '==)
+        (eq? (car stmt) '!=)
+        (eq? (car stmt) '<)
+        (eq? (car stmt) '>)
+        (eq? (car stmt) '<=)
+        (eq? (car stmt) '>=)
+        (eq? (car stmt) '&&)
+        (eq? (car stmt) '||)
+        (eq? (car stmt) '!))))
