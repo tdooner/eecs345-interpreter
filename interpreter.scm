@@ -68,7 +68,10 @@
   (lambda (stmt env)
     (if (interpret-bool-value (cadr stmt) (interpret-bool-env (cadr stmt) env))
       (interpret-stmt (caddr stmt) (interpret-bool-env (cadr stmt) env))
-      (interpret-stmt (cadddr stmt) (interpret-bool-env (cadr stmt) env)))))
+      ; if there is no else to the if:
+      (if (null? (cdddr stmt))
+        env
+        (interpret-stmt (cadddr stmt) (interpret-bool-env (cadr stmt) env))))))
 
 ; Handles '(> (= x (+ x 1)) y)
 ; Returns updated environment
