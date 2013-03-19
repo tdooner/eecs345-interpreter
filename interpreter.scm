@@ -3,6 +3,8 @@
 ; Brian Stack (bis12)
 
 (load "loopSimpleParser.scm")
+(define false #f)
+(define true #t)
 
 ; The heart of it all. Creates a default environment that is used, and at the
 ; end of interpreting the list of things, returns whatever value is put in the
@@ -10,7 +12,7 @@
 (define interpret
   (lambda (filename)
     (display (get-environment 'return
-      (interpret-statement-list (parser filename) '((true 'true) (false 'false) (return None)))))))
+      (interpret-statement-list (parser filename) '((true true) (false false) (return None)))))))
 
 (define interpret-statement-list
   (lambda (parsetree env)
