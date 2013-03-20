@@ -3,6 +3,7 @@
 ; Brian Stack (bis12)
 
 (load "loopSimpleParser.scm")
+(define return #f)
 (define the-begin-environment
  '(((true false return) (#t #f None))))
 
@@ -12,9 +13,11 @@
 (define interpret
   (lambda (filename)
     (display (true-or-falsify (get-environment 'return
-      (interpret-statement-list (parser filename) the-begin-environment))
+      (call/cc (lambda (ret) (set! return ret)
+        (interpret-statement-list (parser filename) the-begin-environment))))
     ))
 ))
+; (define interpret (lambda (file) (display (parser file)))) ; DEBUG ONLY
 
 (define interpret-statement-list
   (lambda (parsetree env)
