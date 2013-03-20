@@ -45,11 +45,22 @@
            (boolean-stmt? stmt))
        (interpret-stmt (caddr stmt) (interpret-stmt (cadr stmt) env)))
 
+      ((eq? (car stmt) 'begin) (interpret-block stmt env))
+      ((eq? (car stmt) 'while) (call/cc (lambda (break) (interpret-while stmt (add-to-environment 'break break env)))))
+      ((eq? (car stmt) 'break) ((get-environment 'break env) env))
+      ((eq? (car stmt) 'continue) ((get-environment 'continue env) env))
       ((eq? (car stmt) 'var) (interpret-declare stmt env))
       ((eq? (car stmt) '=) (interpret-assign stmt env))
       ((eq? (car stmt) 'if) (interpret-branch stmt env))
       ((eq? (car stmt) 'return) (interpret-ret stmt env))
 )))
+
+(define interpret-block
+  (lambda (stmt env)
+    (del-layer
+      (call/cc
+        (lambda (cont)
+          (interpret-statement-list (cdr stmt) (add-to-environment 'continue cont (add-layer env))))))))
 
 ; Returns the value of the stmt based on the environment that is passed in.
 (define interpret-stmt-value
@@ -71,7 +82,7 @@
 ; Returns updated environment
 (define interpret-ret
   (lambda (stmt env)
-    (update-environment 'return (interpret-stmt-value (cadr stmt) env) env)))
+    (return (update-environment 'return (interpret-stmt-value (cadr stmt) env) env))))
 
 ; Handles '(if (...) (...) (...))
 ; Returns updated environment
@@ -84,6 +95,14 @@
       (if (null? (cdddr stmt))
         (interpret-bool-env (cadr stmt) env)   ; <- if there is no "else"
         (interpret-stmt (cadddr stmt) (interpret-bool-env (cadr stmt) env))))))
+
+; Handles while loops
+; Returns updated environment
+(define interpret-while
+  (lambda (stmt env)
+    (if (interpret-bool-value (cadr stmt) (interpret-bool-env (cadr stmt) env))
+      (interpret-while stmt (interpret-stmt (caddr stmt) (interpret-bool-env (cadr stmt) env)))
+      (interpret-bool-env (cadr stmt) env))))
 
 ; Handles '(> (= x (+ x 1)) y)
 ; Returns updated environment
@@ -184,6 +203,14 @@
       (else
         (cons (car env) (update-environment binding value (cdr env))))
       )))
+
+(define add-layer
+  (lambda (env)
+    (cons '(()()) env)))
+
+(define del-layer
+  (lambda (env)
+    (cdr env)))
 
 (define set-layer
   (lambda (binding value layer)
