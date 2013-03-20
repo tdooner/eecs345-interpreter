@@ -3,7 +3,7 @@ value: 2
 
 var i = 2;
 if (i == 2) {
-  i = 3;
+  var i = 3;
   i = 4;
 }
 return i;

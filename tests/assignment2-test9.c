@@ -7,4 +7,4 @@ while (i < 4) {
   j = j + 1;
   i = i + j;
 }
-return j;
+return i;
