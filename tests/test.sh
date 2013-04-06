@@ -7,6 +7,7 @@ function cleanup {
 trap cleanup EXIT
 
 desc=$1
+echo -n "($1) "
 if [ `head -n1 $1 | grep -c '^description:' -` -eq 1 ]; then
     desc=`head -n1 $1 | sed s/description:// -`
     value=`sed -n '2p' $1 | sed -e 's/value://' -e 's/^ *//g'`
@@ -24,11 +25,11 @@ fi
 result=`echo $result | sed -e 's/^ *//g'`
 
 if [[ $value = $result || ( $value = "ERROR" && $result ) ]] ; then
-    echo -e "\e[00;32m[passed] $desc \e[00m"
+    echo -e "\e[00;32m[passed] $desc\e[00m"
     echo pass >> tests/results.txt
     exit
 else
-    echo -e "\e[00;31m[failed] $desc -- Expected \"$value\", got \"$result\" ($1)\e[00m"
+    echo -e "\e[00;31m[failed] $desc -- Expected \"$value\", got \"$result\"\e[00m"
     echo fail >> tests/results.txt
     exit
 fi
