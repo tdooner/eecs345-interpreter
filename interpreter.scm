@@ -222,7 +222,7 @@
       (error "Error: You have already declared this variable in this scope!")
       (cons
         (cons binding (car layer))
-        (cons (cons value (car (cdr layer))) '())))))
+        (cons (cons value (cadr layer)) '())))))
 
 ; Helper function to updates the value of a variable in the environment and
 ; return the new environment
@@ -248,13 +248,13 @@
   (lambda (binding value layer)
     (cond
       ((null? layer) layer)
-      ((eq? (car (car layer)) binding)
-       (cons (car layer) (cons (cons value (cdr (cadr layer))) '())))
+      ((eq? (caar layer) binding)
+       (cons (car layer) (cons (cons value (cdadr layer)) '())))
       (else
         (let
-          ((next-env (set-layer binding value (cons (cdr (car layer)) (cons (cdr (car (cdr layer))) '())))))
+          ((next-env (set-layer binding value (cons (cdar layer) (cons (cdadr layer) '())))))
           ; note: here we're using add-to-layer as a utility to do the cons'ing
-          (add-to-layer (car (car layer)) (car (car (cdr layer))) next-env))
+          (add-to-layer (caar layer) (caadr layer) next-env))
 ))))
 
 ; Helper function to retrieve the value of a variable from the environment
@@ -262,7 +262,7 @@
   (lambda (binding env)
     (cond
       ((null? env) (error "Error: This variable has not been declared yet!"))
-      ((member? binding (car (car env))) (get-from-layer binding (car env)))
+      ((member? binding (caar env)) (get-from-layer binding (car env)))
       (else (get-environment binding (cdr env))))))
 
 ; Given a layer in the environment like '((x y z) (1 2 3)) it will look up the
@@ -271,9 +271,9 @@
   (lambda (binding layer)
     (cond
       ((null? layer) layer)
-      ((eq? (car (car layer)) binding) (car (car (cdr layer))))
+      ((eq? (caar layer) binding) (caadr layer))
       (else (get-from-layer binding
-              (cons (cdr (car layer)) (cons (cdr (car (cdr layer))) '())))))))
+              (cons (cdar layer) (cons (cdadr layer) '())))))))
 
 ; Helper function to convert #t to true and #f to false
 (define true-or-falsify
