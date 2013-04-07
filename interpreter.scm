@@ -47,7 +47,7 @@
 
       ((eq? (car stmt) 'begin) (interpret-block stmt env))
       ((eq? (car stmt) 'while) (call/cc (lambda (break) (interpret-while stmt (add-to-environment 'break break env)))))
-      ((eq? (car stmt) 'break) ((get-environment 'break env) env))
+      ((eq? (car stmt) 'break) ((get-environment 'break env) (del-layer env)))
       ((eq? (car stmt) 'continue) ((get-environment 'continue env) env))
       ((eq? (car stmt) 'var) (interpret-declare stmt env))
       ((eq? (car stmt) '=) (interpret-assign stmt env))
