@@ -47,6 +47,7 @@
         ; TODO!!!!! ----------------v  This will only work for functions with no parameters.
         (interpret-statement-list (cadr (get-environment function env)) env))))))
 
+; Interpret all of the statements (hopefully)
 (define interpret-statement-list
   (lambda (parsetree env)
     (cond
@@ -83,6 +84,7 @@
       ((eq? (car stmt) 'return) (interpret-ret stmt env))
 )))
 
+; Performs the actions in a block
 (define interpret-block
   (lambda (stmt env)
     (del-layer
@@ -216,6 +218,7 @@
         (cdr env))
 ))
 
+; Adds a binding to a layer
 (define add-to-layer
   (lambda (binding value layer)
     (if (declared? binding layer)
@@ -236,14 +239,17 @@
         (cons (car env) (update-environment binding value (cdr env))))
       )))
 
+; Adds a layer to the environment
 (define add-layer
   (lambda (env)
     (cons '(()()) env)))
 
+; Removes a layer from the environment
 (define del-layer
   (lambda (env)
     (cdr env)))
 
+; Change the value of a variable in a layer
 (define set-layer
   (lambda (binding value layer)
     (cond
@@ -296,10 +302,12 @@
       ((eq? (car l) item) #t)
       (else (member? item (cdr l))))))
 
+; Test if x is an atom or not
 (define atom?
   (lambda (x)
     (not (or (pair? x) (null? x)))))
 
+; Test if the statement is boolean
 (define boolean-stmt?
   (lambda (stmt)
     (or (eq? (car stmt) '==)
