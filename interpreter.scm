@@ -102,7 +102,7 @@
   (lambda (stmt env)
     (if (interpret-bool-value (cadr stmt) (interpret-bool-env (cadr stmt) env))
       (interpret-while stmt (interpret-stmt (caddr stmt) (interpret-bool-env (cadr stmt) env)))
-      (interpret-bool-env (cadr stmt) env))))
+      (interpret-stmt (cadr stmt) (interpret-bool-env (cadr stmt) env)))))
 
 ; Handles '(> (= x (+ x 1)) y)
 ; Returns updated environment
