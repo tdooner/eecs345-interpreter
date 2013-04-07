@@ -17,7 +17,7 @@ if [ `head -n1 $1 | grep -c '^description:' -` -eq 1 ]; then
 else
     value=`sed -n '1p' $1 | sed -e 's/value://' -e 's/^ *//g'`
 fi
-echo -e "$WHITE + $1 | $desc"
+echo -en "$WHITE + $1 | $desc"
 
 rm tests/temp.c 2>/dev/null
 if [ ! `echo $1 | grep 'assignment3'` ]; then
