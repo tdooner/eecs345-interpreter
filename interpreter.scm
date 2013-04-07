@@ -2,7 +2,7 @@
 ; Tom Dooner (ted27)
 ; Brian Stack (bis12)
 
-(load "loopSimpleParser.scm")
+(load "functionParser.scm")
 (define return #f)
 (define the-begin-environment
  '(((true false return) (#t #f None))))
