@@ -1,5 +1,5 @@
 description: Functions changing global variables
-value: 8
+value: 1
 
 var global = 3;
 other() {
