@@ -170,6 +170,7 @@
     (cond
       ((eq? stmt 'true) env)
       ((eq? stmt 'false) env)
+      ((atom? stmt) env)
       (else
         (if (null? (cddr stmt))
           ; unary boolean operator, i.e. (! x):
