@@ -170,21 +170,6 @@
       env)))
 
 ; Handles '(> (= x (+ x 1)) y)
-; Returns updated environment
-(define interpret-bool-env
-  (lambda (stmt env)
-    (cond
-      ((eq? stmt 'true) env)
-      ((eq? stmt 'false) env)
-      ((atom? stmt) env)
-      (else
-        (if (null? (cddr stmt))
-          ; unary boolean operator, i.e. (! x):
-          (interpret-stmt (cadr stmt) env)
-          ; binary boolean operator:
-          (interpret-stmt (cadr stmt) env))))))
-
-; Handles '(> (= x (+ x 1)) y)
 ; Returns #t or #f based on the environment and the variables
 (define interpret-bool-value
   (lambda (stmt env)
