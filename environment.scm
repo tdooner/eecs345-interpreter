@@ -68,8 +68,13 @@
         (let
           ((next-env (set-layer binding value (cons (cdar layer) (cons (cdadr layer) '())))))
           ; note: here we're using add-to-layer as a utility to do the cons'ing
-          (add-to-layer (caar layer) (caadr layer) next-env))
-))))
+          (display next-env)
+          (if (declared? (caar next-env) next-env)
+            (error "Error: You have already declared this variable in this scope!")
+            (cons
+              (cons (caar next-env) (car next-env))
+              (cons (cons (caadr next-env) (cadr next-env)) '()))))))))
+            ;(add-to-layer (caar layer) (caadr layer) next-env))
 
 ; Helper function to retrieve the value of a variable from the environment
 (define get-environment
