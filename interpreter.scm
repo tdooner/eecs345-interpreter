@@ -5,7 +5,6 @@
 (load "functionParser.scm")
 (load "environment.scm")
 
-(define return #f)
 (define the-begin-environment
   (add-to-environment 'true #t
     (add-to-environment 'false #f
@@ -47,10 +46,11 @@
 (define call-function
   (lambda (function values-to-bind env)
     (get-environment 'return
-      (call/cc (lambda (ret) (set! return ret)
+      (call/cc (lambda (ret)
+                 (let
+                   ((funcenv (add-to-environment 'returnfunc ret (create-function-env (car (get-environment function env)) values-to-bind env))))
                  ;(begin (display function) (display "\n") (display (cadr (get-environment function env))) (display "\n") (display env) (display "\n")
-        (interpret-statement-list (cadr (get-environment function env))
-                                  (create-function-env (car (get-environment function env)) values-to-bind env)))))));)
+                  (interpret-statement-list (cadr (get-environment function env)) funcenv)))))));)
 
 ; This function takes:
 ;   - a list of formal parameters from a function declaration, like:
@@ -74,19 +74,20 @@
       ((null? formal-parameter-list) new-env)
       (else (if (eq? (car formal-parameter-list) '&)
               ; if calling by reference, store the original variable's box in the new environment
-              (bind-formal-parameters (cddr formal-parameter-list) (cdr value-list) env new-env)
+              (bind-formal-parameters (cddr formal-parameter-list) (cdr value-list) env (add-box-to-environment (cadr formal-parameter-list) (get-environment-box (car value-list) env) new-env))
               ; if calling by value, store the original variable's value in the new environment
               (bind-formal-parameters (cdr formal-parameter-list) (cdr value-list) env (add-to-environment (car formal-parameter-list) (interpret-stmt-value (car value-list) env) new-env)))))))
 
 ; Interpret all of the statements (hopefully)
 (define interpret-statement-list
   (lambda (parsetree env)
+    ;(begin (display "\n") (display "interpreting ") (display parsetree) (display "\n")
     (cond
       ((null? parsetree) env)
       (else
         ; This passes the updated environment into the next statement to
         ; be interpreted
-        (interpret-statement-list (cdr parsetree) (interpret-stmt (car parsetree) env))))))
+        (interpret-statement-list (cdr parsetree) (interpret-stmt (car parsetree) env))))));)
 
 ; Returns the new environment after the stmt is interpreted.
 (define interpret-stmt
@@ -113,7 +114,7 @@
       ((eq? (car stmt) '=) (interpret-assign stmt env))
       ((eq? (car stmt) 'if) (interpret-branch stmt env))
       ((eq? (car stmt) 'return) (interpret-ret stmt env))
-      ((eq? (car stmt) 'funcall) (call-function (cadr stmt) (cddr stmt) env))
+      ((eq? (car stmt) 'funcall) (let ((env env)) (call-function (cadr stmt) (cddr stmt) env) env))
 )))
 
 ; Performs the actions in a block
@@ -139,13 +140,14 @@
       ((eq? (car stmt) '/) ((interpret-binary (lambda (x y) (floor (/ x y)))) stmt env))
       ((eq? (car stmt) '%) ((interpret-binary remainder) stmt env))
       ((boolean-stmt? stmt) (interpret-bool-value stmt env))
+      ((eq? (car stmt) 'funcall) (call-function (cadr stmt) (cddr stmt) env))
 )))
 
 ; Handles '(return x)
 ; Returns updated environment
 (define interpret-ret
   (lambda (stmt env)
-    (return (update-environment 'return (interpret-stmt-value (cadr stmt) env) env))))
+    ((get-environment 'returnfunc env) (update-environment 'return (interpret-stmt-value (cadr stmt) env) env))))
 
 ; Handles '(if (...) (...) (...))
 ; Returns updated environment

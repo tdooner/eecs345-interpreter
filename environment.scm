@@ -25,6 +25,13 @@
         (cdr env))
 ))
 
+(define add-box-to-environment
+  (lambda (binding value env)
+      (cons
+        (add-box-to-layer binding value (car env))
+        (cdr env))
+))
+
 ; Adds a binding to a layer
 (define add-to-layer
   (lambda (binding value layer)
@@ -33,6 +40,15 @@
       (cons
         (cons binding (car layer))
         (cons (cons (box value) (cadr layer)) '())))))
+
+; Adds a binding to a layer
+(define add-box-to-layer
+  (lambda (binding value layer)
+    (if (declared? binding layer)
+      (error "Error: You have already declared this variable in this scope!")
+      (cons
+        (cons binding (car layer))
+        (cons (cons value (cadr layer)) '())))))
 
 ; Helper function to updates the value of a variable in the environment and
 ; return the new environment
@@ -76,10 +92,26 @@
 ; Helper function to retrieve the value of a variable from the environment
 (define get-environment
   (lambda (binding env)
+    ;(begin (display "\n  ")(display binding) (display "\n  ") (display env)
     (cond
       ((null? env) (error "Error: This variable has not been declared yet!"))
       ((member? binding (caar env)) (get-from-layer binding (car env)))
-      (else (get-environment binding (cdr env))))))
+      (else (get-environment binding (cdr env))))));)
+
+(define get-environment-box
+  (lambda (binding env)
+    (cond
+      ((null? env) (error "Error: This variable has not been declared yet!"))
+      ((member? binding (caar env)) (get-from-layer-box binding (car env)))
+      (else (get-environment-box binding (cdr env))))))
+
+(define get-from-layer-box
+  (lambda (binding layer)
+    (cond
+      ((null? layer) layer)
+      ((eq? (caar layer) binding) (caadr layer))
+      (else (get-from-layer-box binding
+              (cons (cdar layer) (cons (cdadr layer) '())))))))
 
 ; Given a layer in the environment like '((x y z) (1 2 3)) it will look up the
 ; value of a binding
