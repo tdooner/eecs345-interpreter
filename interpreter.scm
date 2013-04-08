@@ -14,7 +14,7 @@
 (define interpret
   (lambda (filename)
     (display (true-or-falsify
-      (call-function 'main (interpret-global-statement-list (parser filename) the-begin-environment))))
+      (call-function 'main '() (interpret-global-statement-list (parser filename) the-begin-environment))))
 ))
 ; (define interpret (lambda (file) (display (parser file)))) ; DEBUG ONLY
 
@@ -41,11 +41,38 @@
     (add-to-environment (cadr stmt) (cddr stmt) env)))
 
 (define call-function
-  (lambda (function env)
+  (lambda (function values-to-bind env)
     (get-environment 'return
       (call/cc (lambda (ret) (set! return ret)
-        ; TODO!!!!! ----------------v  This will only work for functions with no parameters.
-        (interpret-statement-list (cadr (get-environment function env)) env))))))
+                 ;(begin (display function) (display "\n") (display (cadr (get-environment function env))) (display "\n") (display env) (display "\n")
+        (interpret-statement-list (cadr (get-environment function env))
+                                  (create-function-env (car (get-environment function env)) values-to-bind env)))))));)
+
+; This function takes:
+;   - a list of formal parameters from a function declaration, like:
+;     '(x & y)
+;   - a list of the values to bind from the calling environment, like:
+;     '((+ z 3) h)
+;   - the environment, the last layer of which is the global environment,
+; and prepares a new environment that consists of the global environment with a
+; new layer which contains only the call-by-value parameters bound.
+(define create-function-env
+  (lambda (formal-parameters values-to-bind env)
+    (bind-formal-parameters
+      formal-parameters
+      values-to-bind
+      env
+      (add-layer (global-env-only env))))) ;(this could just be in call-function ?)
+
+(define bind-formal-parameters
+  (lambda (formal-parameter-list value-list env new-env)
+    (cond
+      ((null? formal-parameter-list) new-env)
+      (else (if (eq? (car formal-parameter-list) '&)
+              ; if calling by reference, store the original variable's box in the new environment
+              (bind-formal-parameters (cddr formal-parameter-list) (cdr value-list) env new-env)
+              ; if calling by value, store the original variable's value in the new environment
+              (bind-formal-parameters (cdr formal-parameter-list) (cdr value-list) env (add-to-environment (car formal-parameter-list) (interpret-stmt-value (car value-list) env) new-env)))))))
 
 ; Interpret all of the statements (hopefully)
 (define interpret-statement-list
@@ -82,6 +109,7 @@
       ((eq? (car stmt) '=) (interpret-assign stmt env))
       ((eq? (car stmt) 'if) (interpret-branch stmt env))
       ((eq? (car stmt) 'return) (interpret-ret stmt env))
+      ((eq? (car stmt) 'funcall) (call-function (cadr stmt) (cddr stmt) env))
 )))
 
 ; Performs the actions in a block
@@ -99,6 +127,7 @@
       ((null? stmt) 'None)
       ((number? stmt) stmt)
       ((atom? stmt) (get-environment stmt env))
+      ((eq? (car stmt) 'funcall) (call-function (cadr stmt) (cddr stmt) env))
       ((eq? (car stmt) '=) (interpret-assign-value stmt env))
       ((eq? (car stmt) '+) ((interpret-binary +) stmt env))
       ((eq? (car stmt) '-) (interpret-negative stmt env))
@@ -280,6 +309,14 @@
       ((eq? (caar layer) binding) (caadr layer))
       (else (get-from-layer binding
               (cons (cdar layer) (cons (cdadr layer) '())))))))
+
+; Helper function to take a big environment and return only the last part,
+; which is the global environment
+(define global-env-only
+  (lambda (env)
+    (cond
+      ((null? (cdr env)) env)
+      (else global-env-only (cdr env)))))
 
 ; Helper function to convert #t to true and #f to false
 (define true-or-falsify
