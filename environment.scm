@@ -64,7 +64,6 @@
       ((eq? (caar layer) binding) (let ((layer layer))
         (set-box! (caadr layer) value)
         layer))
-       ;(cons (car layer) (cons (cons value (cdadr layer)) '())))
       (else
         (let
           ((next-env (set-layer binding value (cons (cdar layer) (cons (cdadr layer) '())))))
