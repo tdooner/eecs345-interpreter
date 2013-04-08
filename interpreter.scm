@@ -151,21 +151,21 @@
 ; Returns updated environment
 (define interpret-branch
   (lambda (stmt env)
-    (if (interpret-bool-value (cadr stmt) (interpret-bool-env (cadr stmt) env))
+    (if (interpret-bool-value (cadr stmt) env)
       ; if true
-      (interpret-stmt (caddr stmt) (interpret-bool-env (cadr stmt) env))
+      (interpret-stmt (caddr stmt) env)
       ; if false
       (if (null? (cdddr stmt))
-        (interpret-bool-env (cadr stmt) env)   ; <- if there is no "else"
-        (interpret-stmt (cadddr stmt) (interpret-bool-env (cadr stmt) env))))))
+        env   ; <- if there is no "else"
+        (interpret-stmt (cadddr stmt) env)))))
 
 ; Handles while loops
 ; Returns updated environment
 (define interpret-while
   (lambda (stmt env)
-    (if (interpret-bool-value (cadr stmt) (interpret-bool-env (cadr stmt) env))
-      (interpret-while stmt (interpret-stmt (caddr stmt) (interpret-bool-env (cadr stmt) env)))
-      (interpret-stmt (cadr stmt) (interpret-bool-env (cadr stmt) env)))))
+    (if (interpret-bool-value (cadr stmt) env)
+      (interpret-while stmt (interpret-stmt (caddr stmt) env))
+      (interpret-stmt (cadr stmt) env))))
 
 ; Handles '(> (= x (+ x 1)) y)
 ; Returns updated environment
@@ -179,7 +179,7 @@
           ; unary boolean operator, i.e. (! x):
           (interpret-stmt (cadr stmt) env)
           ; binary boolean operator:
-          (interpret-stmt (cadr stmt) (interpret-stmt (caddr stmt) env)))))))
+          (interpret-stmt (cadr stmt) env))))))
 
 ; Handles '(> (= x (+ x 1)) y)
 ; Returns #t or #f based on the environment and the variables
@@ -204,23 +204,21 @@
   (lambda (stmt env)
     (cond
       ((null? (cddr stmt)) (add-to-environment (cadr stmt) 'None env))
-      (else (add-to-environment (cadr stmt)
-              (interpret-stmt-value (caddr stmt) env)
-              (interpret-stmt (caddr stmt) env))))))
+      (else (add-to-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) env)))))
 
 ; Handles '(= x (+ x 1))
 ; Returns updated environment
 (define interpret-assign
   (lambda (stmt env)
-    (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) (interpret-stmt (caddr stmt) env))))
+    (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) env)))
 
 ; Handles '(= x (+ x 1))
 ; Returns value, which is just the value of the caddr of it.
 (define interpret-assign-value
   (lambda (stmt env)
     (cond
-      ((number? (caddr stmt)) (caddr stmt))
-      (else (interpret-stmt-value (caddr stmt) env)))))
+      ((number? (caddr stmt)) (get-environment (cadr stmt) (update-environment (cadr stmt) (caddr stmt) env)))
+      (else (get-environment (cadr stmt) (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env) env))))))
 
 ; Helper function to abstract out binary operations like < > + - && ||, etc.
 (define interpret-binary
@@ -228,7 +226,7 @@
     (lambda (stmt env)
       (op
         (interpret-stmt-value (cadr stmt) env)
-        (interpret-stmt-value (caddr stmt) (interpret-stmt (cadr stmt) env))))))
+        (interpret-stmt-value (caddr stmt) env)))))
 
 ; Helper function for unary or binary subtraction
 (define interpret-negative

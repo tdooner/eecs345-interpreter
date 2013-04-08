@@ -32,7 +32,7 @@
       (error "Error: You have already declared this variable in this scope!")
       (cons
         (cons binding (car layer))
-        (cons (cons value (cadr layer)) '())))))
+        (cons (cons (box value) (cadr layer)) '())))))
 
 ; Helper function to updates the value of a variable in the environment and
 ; return the new environment
@@ -61,8 +61,10 @@
   (lambda (binding value layer)
     (cond
       ((null? layer) layer)
-      ((eq? (caar layer) binding)
-       (cons (car layer) (cons (cons value (cdadr layer)) '())))
+      ((eq? (caar layer) binding) (let ((layer layer))
+        (set-box! (caadr layer) value)
+        layer))
+       ;(cons (car layer) (cons (cons value (cdadr layer)) '())))
       (else
         (let
           ((next-env (set-layer binding value (cons (cdar layer) (cons (cdadr layer) '())))))
@@ -84,7 +86,7 @@
   (lambda (binding layer)
     (cond
       ((null? layer) layer)
-      ((eq? (caar layer) binding) (caadr layer))
+      ((eq? (caar layer) binding) (unbox (caadr layer)))
       (else (get-from-layer binding
               (cons (cdar layer) (cons (cdadr layer) '())))))))
 
