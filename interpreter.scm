@@ -2,7 +2,7 @@
 ; Tom Dooner (ted27)
 ; Brian Stack (bis12)
 
-(load "functionParser.scm")
+(load "classParser.scm")
 (load "environment.scm")
 
 (define the-begin-environment
