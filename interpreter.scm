@@ -18,8 +18,11 @@
 ; "return" variable in the environment
 (define interpret
   (lambda (filename class)
-    (display (true-or-falsify
-      (call-function 'main '() (interpret-global-statement-list (parser filename) the-begin-environment))))
+    (let ((env (interpret-global-statement-list (parser filename) the-begin-environment)))
+      ; (display (get-class (string->symbol class) env)) ; debug
+      (display (true-or-falsify
+        (call-function 'main '() (get-class (string->symbol class) env))))
+    )
 ))
 ; (define interpret (lambda (file) (display (parser file)))) ; DEBUG ONLY
 
@@ -34,8 +37,7 @@
 (define interpret-global-stmt
   (lambda (stmt env)
     (cond
-      ((eq? (car stmt) 'function) (interpret-declare-function stmt env))
-      ((eq? (car stmt) 'var) (interpret-declare stmt env))
+      ((eq? (car stmt) 'class) (interpret-class (cadr stmt) (caddr stmt) (cadddr stmt) env))
       (else (interpret-stmt (car stmt) env))
 )))
 
