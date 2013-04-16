@@ -2,7 +2,7 @@
 ; Tom Dooner (ted27)
 ; Brian Stack (bis12)
 
-(load "classParser.scm")
+(load "lib/classParser.scm")
 (load "environment.scm")
 (load "functions.scm")
 (load "classes.scm")
