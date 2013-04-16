@@ -1,4 +1,4 @@
-; Interpreter Project, Part 3
+; Interpreter Project, Part 4
 ; Tom Dooner (ted27)
 ; Brian Stack (bis12)
 

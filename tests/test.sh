@@ -36,9 +36,9 @@ if [ ! `echo $1 | egrep 'assignment4'` ]; then
 fi
 
 if [[ $value = "ERROR" ]]; then
-    result=`racket -Ve '(load "interpreter.scm")(interpret "tests/temp.c")(exit)' 2>&1 1>/dev/null`
+    result=`racket -Ve '(load "interpreter.scm")(interpret "tests/temp.c" "Main")(exit)' 2>&1 1>/dev/null`
 else
-    result=`racket -e '(load "interpreter.scm")(interpret "tests/temp.c")(exit)' 2>&1`
+    result=`racket -e '(load "interpreter.scm")(interpret "tests/temp.c" "Main")(exit)' 2>&1`
 fi
 
 result=`echo $result | sed -e 's/^ *//g'`
