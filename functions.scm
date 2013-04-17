@@ -39,7 +39,15 @@
       ((null? formal-parameter-list) new-env)
       (else (if (eq? (car formal-parameter-list) '&)
               ; if calling by reference, store the original variable's box in the new environment
-              (bind-formal-parameters (cddr formal-parameter-list) (cdr value-list) env (add-box-to-environment (cadr formal-parameter-list) (get-environment-box (car value-list) env) new-env))
+              (bind-formal-parameters
+                (cddr formal-parameter-list)
+                (cdr value-list)
+                env
+                (add-box-to-environment (cadr formal-parameter-list) (get-environment-box (car value-list) env) new-env))
               ; if calling by value, store the original variable's value in the new environment
-              (bind-formal-parameters (cdr formal-parameter-list) (cdr value-list) env (add-to-environment (car formal-parameter-list) (interpret-stmt-value (car value-list) env) new-env)))))))
+              (bind-formal-parameters
+                (cdr formal-parameter-list)
+                (cdr value-list)
+                env
+                (add-to-environment (car formal-parameter-list) (interpret-stmt-value (car value-list) env) new-env)))))))
 
