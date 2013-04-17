@@ -1,10 +1,10 @@
 description: Call-by-reference works
 value: 5
 
-ref(&x) {
+static ref(&x) {
   x = x + 1;
 }
-main() {
+static main() {
   var x = 4;
   ref(x);
   return x;

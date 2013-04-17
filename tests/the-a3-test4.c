@@ -1,11 +1,11 @@
 description: Functions changing global variables
 value: 1
 
-var global = 3;
-other() {
+static var global = 3;
+static other() {
     global = 1;
 }
-main() {
+static main() {
   other();
   return global;
 }

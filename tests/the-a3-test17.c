@@ -1,7 +1,7 @@
 description: Function parameters hiding globals
 value: 1
 
-min(x, y, z) {
+static min(x, y, z) {
   if (x < y) {
     if (x < z)
       return x;
@@ -14,14 +14,14 @@ min(x, y, z) {
     return y;
 }
 
-var x = 10;
-var y = 20;
-var z = 30;
+static var x = 10;
+static var y = 20;
+static var z = 30;
 
-var min1 = min(x,y,z);
-var min2 = min(z,y,x);
+static var min1 = min(x,y,z);
+static var min2 = min(z,y,x);
 
-main() {
+static main() {
   var min3 = min(y,z,x);
 
   if (min1 == min3)

@@ -1,13 +1,13 @@
 description: Function in global variable declaration
 value: 5
 
-var x = 4;
+static var x = 4;
 
-increment(x) {
+static increment(x) {
   return x + 1;
 }
-var y = increment(x);
+static var y = increment(x);
 
-main() {
+static main() {
     return y;
 }

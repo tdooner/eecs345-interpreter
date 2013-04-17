@@ -1,18 +1,18 @@
 description: Function without a return statement
 value: 35
 
-var x = 0;
-var y = 0;
+static var x = 0;
+static var y = 0;
 
-setx(a) {
+static setx(a) {
   x = a;
 }
 
-sety(b) {
+static sety(b) {
   y = b;
 }
 
-main() {
+static main() {
   setx(5);
   sety(7);
   return x * y;

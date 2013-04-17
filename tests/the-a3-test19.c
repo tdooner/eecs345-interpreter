@@ -1,7 +1,7 @@
 description: Function call in the parameter of a function
 value: 24
 
-fact(n) {
+static fact(n) {
   var r = 1;
   while (n > 1) {
     r = r * n;
@@ -10,6 +10,6 @@ fact(n) {
   return r;
 }
 
-main() {
+static main() {
   return fact(fact(3) - fact(2));
 }

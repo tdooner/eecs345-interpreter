@@ -1,7 +1,7 @@
 description: Multiple function calls in an expression
 value: 20
 
-fact(n) {
+static fact(n) {
   var f = 1;
   while (n > 1) {
     f = f * n;
@@ -10,11 +10,11 @@ fact(n) {
   return f;
 }
 
-binom(a, b) {
+static binom(a, b) {
   var val = fact(a) / (fact(b) * fact(a-b));
   return val;
 }
 
-main() {
+static main() {
   return binom(6,3);
 }

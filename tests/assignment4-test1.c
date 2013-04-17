@@ -1,3 +1,6 @@
+description: Example from assignment
+value: dunnoyet
+
 class Rectangle {
   static var width = 10;
   static var height = 12;

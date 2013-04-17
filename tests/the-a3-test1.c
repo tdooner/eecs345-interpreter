@@ -1,6 +1,6 @@
 description: Basic function call
 value: 1
 
-main() {
+static main() {
   return 1;
 }

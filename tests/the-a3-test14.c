@@ -1,9 +1,9 @@
 description: Basic test of global variables
 value: 14
 
-var x = 4;
-var y = 6 + x;
+static var x = 4;
+static var y = 6 + x;
 
-main() {
+static main() {
   return x + y;
 }

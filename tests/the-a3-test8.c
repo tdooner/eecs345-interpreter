@@ -1,11 +1,11 @@
 description: Function that returns boolean
 value: 7
 
-other() {
+static other() {
   return true;
 }
 
-main() {
+static main() {
   if (other())
       return 7;
   else

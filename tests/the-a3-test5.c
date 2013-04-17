@@ -1,9 +1,9 @@
 description: GCD from the assignment
 value: 7
 
-var x = 14;
-var y = 3 * x - 7;
-gcd(a,b) {
+static var x = 14;
+static var y = 3 * x - 7;
+static gcd(a,b) {
   if (a < b) {
     var temp = a;
     a = b;
@@ -17,6 +17,6 @@ gcd(a,b) {
   }
   return b;
 }
-main () {
+static main () {
   return gcd(x,y);
 }

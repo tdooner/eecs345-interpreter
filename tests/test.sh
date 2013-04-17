@@ -20,7 +20,8 @@ else
 fi
 echo -en "$WHITE + $1 | $desc"
 
-rm tests/temp.c 2>/dev/null
+rm -f tests/temp.c
+
 if [ ! `echo $1 | egrep 'assignment4'` ]; then
   echo "class Main {" >> tests/temp.c
 fi
@@ -34,6 +35,11 @@ fi
 if [ ! `echo $1 | egrep 'assignment4'` ]; then
   echo -n "}" >> tests/temp.c
 fi
+
+#if [ $(echo $1 | egrep 'the-a(1|2|3)') ]; then
+#  sed '/^[a-z]*(.*).*{/ s/^/static /' < tests/temp.c > tests/temp2.c
+#  mv tests/temp2.c tests/temp.c
+#fi
 
 if [[ $value = "ERROR" ]]; then
     result=`racket -Ve '(load "interpreter.scm")(interpret "tests/temp.c" "Main")(exit)' 2>&1 1>/dev/null`

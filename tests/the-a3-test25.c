@@ -1,13 +1,13 @@
 description: Assignment side effects with functions
 value: 20332
 
-var x;
+static var x;
 
-f(a,b) {
+static f(a,b) {
   return a * 100 + b;
 }
 
-fib(f) {
+static fib(f) {
   var last = 0;
   var last1 = 1;
 
@@ -20,7 +20,7 @@ fib(f) {
   return last;
 }
 
-main() {
+static main() {
   var y;
   var z = f(x = fib(3), y = fib(4));
   return z * 100 + y * 10 + x;

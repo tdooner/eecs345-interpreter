@@ -1,19 +1,19 @@
 description: Call-by-reference test
 value: 3421
 
-swap1(x, y) {
+static swap1(x, y) {
   var temp = x;
   x = y;
   y = temp;
 }
 
-swap2(&x, &y) {
+static swap2(&x, &y) {
   var temp = x;
   x = y;
   y = temp;
 }
 
-main() {
+static main() {
   var a = 1;
   var b = 2;
   swap1(a,b);
