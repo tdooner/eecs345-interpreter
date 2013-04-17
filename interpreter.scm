@@ -19,7 +19,7 @@
 (define interpret
   (lambda (filename class)
     (let ((env (interpret-global-statement-list (parser filename) the-begin-environment)))
-      ; (display (get-class (string->symbol class) env)) ; debug
+      ;(display (get-environment 'main (get-class (string->symbol class) env))) ; debug
       (display (true-or-falsify
         (call-function 'main '() (get-class (string->symbol class) env))))
     )
@@ -77,8 +77,8 @@
       ((eq? (car stmt) '=) (interpret-assign stmt env))
       ((eq? (car stmt) 'if) (interpret-branch stmt env))
       ((eq? (car stmt) 'return) (interpret-ret stmt env))
-      ((eq? (car stmt) 'funcall) (let ((env env)) (call-function (cadr stmt) (cddr stmt) env) env))
-      ((eq? (car stmt) 'class) (let ((env env)) (interpret-class (cadr stmt) (caddr stmt) (cddr stmt) env) env))
+      ((eq? (car stmt) 'funcall) (begin (interpret-function-in-class stmt env) env))
+      ((eq? (car stmt) 'class) (begin (interpret-class (cadr stmt) (caddr stmt) (cddr stmt) env) env))
 )))
 
 ; Performs the actions in a block
@@ -105,7 +105,6 @@
       ((eq? (car stmt) '/) ((interpret-binary (lambda (x y) (floor (/ x y)))) stmt env))
       ((eq? (car stmt) '%) ((interpret-binary remainder) stmt env))
       ((boolean-stmt? stmt) (interpret-bool-value stmt env))
-      ((eq? (car stmt) 'funcall) (call-function (cadr stmt) (cddr stmt) env))
 )))
 
 ; Handles '(return x)

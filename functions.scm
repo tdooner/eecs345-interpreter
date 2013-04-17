@@ -14,8 +14,8 @@
       (call/cc (lambda (ret)
                  (let
                    ((funcenv (add-to-environment 'returnfunc ret (create-function-env (car (get-environment function env)) values-to-bind env))))
-                   ;(begin (display function) (display "\n") (display (cadr (get-environment function env))) (display "\n") (display env) (display "\n")
-                   (interpret-statement-list (cadr (get-environment function env)) funcenv)))))));)
+                   ;(display function) (display "\n") (display (cadr (get-environment function env))) (display "\n") (display env) (display "\n")
+                   (interpret-statement-list (cadr (get-environment function env)) funcenv)))))))
 
 ; This function takes:
 ;   - a list of formal parameters from a function declaration, like:

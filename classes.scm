@@ -47,3 +47,9 @@
 (define interpret-dot-value
   (lambda (class binding env)
     (get-environment binding (get-class class env))))
+
+(define interpret-function-in-class
+  (lambda (stmt env)
+    (if (list? (cadr stmt))
+      (call-function (caddr (cadr stmt)) (cddr stmt) (get-class (cadr (cadr stmt)) env))
+      (call-function (cadr stmt) (cddr stmt) env))))
