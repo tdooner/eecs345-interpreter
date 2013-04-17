@@ -14,8 +14,8 @@
       (call/cc (lambda (ret)
                  (let
                    ((funcenv (add-to-environment 'returnfunc ret (create-function-env (car (get-environment function env)) values-to-bind env))))
-                 ;(begin (display function) (display "\n") (display (cadr (get-environment function env))) (display "\n") (display env) (display "\n")
-                  (interpret-statement-list (cadr (get-environment function env)) funcenv)))))));)
+                   ;(begin (display function) (display "\n") (display (cadr (get-environment function env))) (display "\n") (display env) (display "\n")
+                   (interpret-statement-list (cadr (get-environment function env)) funcenv)))))));)
 
 ; This function takes:
 ;   - a list of formal parameters from a function declaration, like:
@@ -27,11 +27,13 @@
 ; new layer which contains only the call-by-value parameters bound.
 (define create-function-env
   (lambda (formal-parameters values-to-bind env)
-    (bind-formal-parameters
-      formal-parameters
-      values-to-bind
-      env
-      (add-layer (global-env-only env))))) ;(this could just be in call-function ?)
+    (if (= (length (filter (lambda (x) (not (eq? x '&))) formal-parameters)) (length values-to-bind))
+      (bind-formal-parameters
+        formal-parameters
+        values-to-bind
+        env
+        (add-layer (global-env-only env))) ;(this could just be in call-function ?)
+      (error "Incorrect number of arguments!"))))
 
 (define bind-formal-parameters
   (lambda (formal-parameter-list value-list env new-env)
