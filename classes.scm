@@ -43,3 +43,7 @@
 (define get-class
   (lambda (classname env)
     (car (get-environment classname env)))) ; <---- THIS ONLY RETURNS THE CODE TO RUN FOR THE FUNCTION AND NOT THE PARENT CLASS INFO
+
+(define interpret-dot-value
+  (lambda (class binding env)
+    (get-environment binding (get-class class env))))
