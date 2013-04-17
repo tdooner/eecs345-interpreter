@@ -7,7 +7,7 @@
   (lambda (item l)
     (cond
       ((null? l) #f)
-      ((eq? (car l) item) #t)
+      ((equal? (car l) item) #t)
       (else (member? item (cdr l))))))
 
 ; Helper function to return #t if binding is in some level of the environment
@@ -77,7 +77,7 @@
   (lambda (binding value layer)
     (cond
       ((null? layer) layer)
-      ((eq? (caar layer) binding) (let ((layer layer))
+      ((equal? (caar layer) binding) (let ((layer layer))
         (set-box! (caadr layer) value)
         layer))
       (else
@@ -109,7 +109,7 @@
   (lambda (binding layer)
     (cond
       ((null? layer) layer)
-      ((eq? (caar layer) binding) (caadr layer))
+      ((equal? (caar layer) binding) (caadr layer))
       (else (get-from-layer-box binding
               (cons (cdar layer) (cons (cdadr layer) '())))))))
 
@@ -119,7 +119,7 @@
   (lambda (binding layer)
     (cond
       ((null? layer) layer)
-      ((eq? (caar layer) binding) (unbox (caadr layer)))
+      ((equal? (caar layer) binding) (unbox (caadr layer)))
       (else (get-from-layer binding
               (cons (cdar layer) (cons (cdadr layer) '())))))))
 
