@@ -3,19 +3,37 @@
 ; Brian Stack (bis12)
 
 ; stmt is something like '(function other (x) ((return (+ x 1))))
+;
+; inserts the body of the function into the environment a tuple of (other 1)
+; because this definition takes one formal parameter
 (define interpret-declare-function
   (lambda (stmt env)
     ; the function closure:
-    (add-to-environment (cadr stmt) (cddr stmt) env)))
+    (add-to-environment
+      (cons (cadr stmt) (list (number-of-parameters (caddr stmt))))
+      (cddr stmt) env)))
 
 (define call-function
   (lambda (function values-to-bind env)
     (get-environment 'return
       (call/cc (lambda (ret)
                  (let
-                   ((funcenv (add-to-environment 'returnfunc ret (create-function-env (car (get-environment function env)) values-to-bind env))))
-                   ;(display function) (display "\n") (display (cadr (get-environment function env))) (display "\n") (display env) (display "\n")
-                   (interpret-statement-list (cadr (get-environment function env)) funcenv)))))))
+                   ((funcenv (add-to-environment 'returnfunc ret (create-function-env (car (get-function function (number-of-parameters values-to-bind) env)) values-to-bind env))))
+                   ;(begin (display "\nrunning the code for: ") (display function) (display "\n") (display (cadr (get-environment function env))) (display "\n") (display env) (display "\n")
+                   (interpret-statement-list (cadr (get-function function (number-of-parameters values-to-bind) env)) funcenv)))))))
+
+; gets the appropriately overloaded function from the environment
+; returns the tuple containing first the formal parameters and second the code
+(define get-function
+  (lambda (function num-arguments env)
+    (get-environment (cons function (list num-arguments)) env)))
+
+(define number-of-parameters
+  (lambda (values-to-bind)
+    (cond
+      ((null? values-to-bind) 0)
+      ((eq? (car values-to-bind) '&) (number-of-parameters (cdr values-to-bind)))
+      (else (+ 1 (number-of-parameters (cdr values-to-bind)))))))
 
 ; This function takes:
 ;   - a list of formal parameters from a function declaration, like:
