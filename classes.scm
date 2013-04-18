@@ -86,4 +86,4 @@
          (function-params (cddr stmt)))
         (call-function function-name function-params env class-name))
       ; if the function is called in the current class
-      (call-function (cadr stmt) (cddr stmt) env 'Main))))
+      (call-function (cadr stmt) (cddr stmt) env class))))
