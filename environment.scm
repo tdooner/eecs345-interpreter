@@ -101,7 +101,7 @@
   (lambda (binding env)
     ;(begin (display "\n  ")(display binding) (display "\n  ") (display env)
     (cond
-      ((null? env) (error "Error: This variable has not been declared yet!"))
+      ((null? env) (error "Error: Variable " binding " has not been declared yet!"))
       ((member? binding (caar env)) (get-from-layer binding (car env)))
       (else (get-environment binding (cdr env))))));)
 
@@ -136,4 +136,5 @@
   (lambda (env)
     (cond
       ((null? (cdr env)) env)
+      ((null? (cddr env)) env)
       (else global-env-only (cdr env)))))

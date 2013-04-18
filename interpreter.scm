@@ -22,6 +22,7 @@
           (env (interpret-global-statement-list (parser filename) the-begin-environment))
           (class-name (string->symbol class))
          )
+      ;(display "okay, executing main. the environment is:") (pretty-print env) (display "\n")
       ;(display (get-environment 'main (get-class (string->symbol class) env))) ; debug
       (display (true-or-falsify
         (call-function 'main '() env class-name)))
@@ -41,7 +42,8 @@
   (lambda (stmt env)
     (cond
       ((eq? (car stmt) 'class) (interpret-class (cadr stmt) (caddr stmt) (cadddr stmt) env))
-      (else (interpret-stmt (car stmt) env))
+      ;(else (interpret-stmt (car stmt) env))
+      (else (error "You can't have anything at the global level except classes"))
 )))
 
 ; Interpret all of the statements (hopefully)

@@ -20,15 +20,21 @@
 
 (define interpret-class
   (lambda (name extends body env)
-    (add-to-environment name
-      (cons (interpret-class-body-list body env name 'noobjectsyet!)
-        (cons '()       ; no instance variables in this assignment!
-          (cons (if (null? extends) 'None (cadr extends)) '())))
-      env)
+    (let*
+      ((extends (if (null? extends) 'None (cadr extends))) ;just the name of the class
+      (empty-class (cons '((()())) (cons '() (list extends)))) ; '((()()) () 'Parent)
+      (env (add-to-environment name empty-class env)))
+
+      ;(cons (interpret-class-body-list body env name 'noobjectsyet!)
+      ;  (cons '()       ; no instance variables in this assignment!
+      ;    (cons (if (null? extends) 'None (cadr extends)) '())))
+      (interpret-class-body-list body env name 'noobjectsyet!)
+    )
 ))
 
 (define interpret-class-body-list
   (lambda (parsetree env class object)
+    ;(display "interpreting class body list with env:") (pretty-print env) (display "\n")
     (cond
       ((null? parsetree) env)
       (else (interpret-class-body-list (cdr parsetree) (interpret-class-body (car parsetree) env class object) class object)))))
@@ -37,8 +43,18 @@
   (lambda (stmt env class object)
     (cond
       ((eq? (car stmt) 'static-function) (interpret-declare-function stmt env class object))
-      ((eq? (car stmt) 'static-var) (interpret-declare stmt env class object))
+      ((eq? (car stmt) 'static-var) (interpret-declare-static-var stmt env class object))
 )))
+
+(define interpret-declare-static-var
+  (lambda (stmt env class object)
+    (let*
+      (
+       (binding (cadr stmt))
+       (value (interpret-stmt-value (caddr stmt) env class object))
+       (with-rest-of-class (lambda (v) (cons v (cdr (get-class class env)))))
+      )
+      (update-environment class (with-rest-of-class (add-to-environment binding value (get-class-parsetree class env))) env))))
 
 (define get-class
   (lambda (classname env)

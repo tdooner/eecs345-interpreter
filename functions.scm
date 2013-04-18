@@ -8,19 +8,35 @@
 ; because this definition takes one formal parameter
 (define interpret-declare-function
   (lambda (stmt env class object)
+    (let*
+      (
+       (function-signature (cons (cadr stmt) (list (number-of-parameters (caddr stmt))))) ; (funcname 3)
+       (function-body (cddr stmt))
+       (with-rest-of-class (lambda (v) (cons v (cdr (get-class class env)))))
+      )
+      (update-environment class (with-rest-of-class (add-to-environment function-signature function-body (get-class-parsetree class env))) env)
     ; the function closure:
-    (add-to-environment
-      (cons (cadr stmt) (list (number-of-parameters (caddr stmt))))
-      (cddr stmt) env)))
+    ;(add-to-environment
+    ;  (cons (cadr stmt) (list (number-of-parameters (caddr stmt))))
+    ;  (cddr stmt) env)
+)))
 
 (define call-function
   (lambda (function values-to-bind env class) ;todo next assignment: add "object" to this
+    ;(print "Trying to call function ")
+    ;(print function)
+    ;(display " in class ") (display class) (display "\n")
+
     (let*
       (
-       (class-env (get-class-parsetree class env))
+       (prev-env (car env))
+       (class-env (cons (car (get-class-parsetree class env)) (global-env-only env))) ; this is a magical "car" <- it makes things work
+       ;(_ (pretty-print class-env))
        (function-signature (cons function (list (number-of-parameters values-to-bind))))
        (exists-in-class? (declared-in-environment? function-signature class-env))
       )
+
+      ;(display "We will call that function with environment: ")
 
       (if exists-in-class?
         ; if the function signature exists in the current class, call it!
@@ -29,8 +45,11 @@
                      (let*
                        (
                         (func (get-function function-signature class-env))
-                        (function-env (add-to-environment 'returnfunc ret (create-function-env (car func) values-to-bind class-env class)))
+                        ;(_ (begin (display "Going to bind values: ") (pretty-print values-to-bind)))
+                        (function-env (add-to-environment 'returnfunc ret (create-function-env (car func) values-to-bind (cons prev-env class-env) class)))
+                        ;(_ (pretty-print function-env))
                        )
+                       ; (display "Calling!\n")
                        (interpret-statement-list (cadr func) function-env class 'noobjecthere))))
         )
         ; if the function signature doesn't exist in the current class, try
@@ -84,11 +103,16 @@
                 (cddr formal-parameter-list)
                 (cdr value-list)
                 env
-                (add-box-to-environment (cadr formal-parameter-list) (get-environment-box (car value-list) env) new-env))
+                (add-box-to-environment (cadr formal-parameter-list) (get-environment-box (car value-list) env) new-env)
+                class
+              )
               ; if calling by value, store the original variable's value in the new environment
               (bind-formal-parameters
                 (cdr formal-parameter-list)
                 (cdr value-list)
                 env
-                (add-to-environment (car formal-parameter-list) (interpret-stmt-value (car value-list) env class 'noobject) new-env)))))))
+                (add-to-environment (car formal-parameter-list) (interpret-stmt-value (car value-list) env class 'noobject) new-env)
+              class
+              )
+)))))
 
