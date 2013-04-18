@@ -14,21 +14,38 @@
       (cddr stmt) env)))
 
 (define call-function
-  (lambda (function values-to-bind env)
-    (get-environment 'return
-      (call/cc (lambda (ret)
-                 (let*
-                   (
-                    (func (get-function function (number-of-parameters values-to-bind) env))
-                    (funcenv (add-to-environment 'returnfunc ret (create-function-env (car func) values-to-bind env)))
-                   )
-                   (interpret-statement-list (cadr func) funcenv)))))))
+  (lambda (function values-to-bind env class) ;todo next assignment: add "object" to this
+    (let*
+      (
+       (class-env (get-class-parsetree class env))
+       (function-signature (cons function (list (number-of-parameters values-to-bind))))
+       (exists-in-class? (declared-in-environment? function-signature class-env))
+      )
+
+      (if exists-in-class?
+        ; if the function signature exists in the current class, call it!
+        (get-environment 'return
+          (call/cc (lambda (ret)
+                     (let*
+                       (
+                        (func (get-function function-signature class-env))
+                        (function-env (add-to-environment 'returnfunc ret (create-function-env (car func) values-to-bind class-env class)))
+                       )
+                       (interpret-statement-list (cadr func) function-env class 'noobjecthere))))
+        )
+        ; if the function signature doesn't exist in the current class, try
+        ; to call the method on its parent class, if a parent class exists
+        ((if (eq? (get-class-parent class env) 'None)
+          (error "Error: Could not find function definition for " function)
+          (call-function function values-to-bind env (get-class-parent class env))))
+))))
 
 ; gets the appropriately overloaded function from the environment
+;   function-signature is something like: (main 0)
 ; returns the tuple containing first the formal parameters and second the code
 (define get-function
-  (lambda (function num-arguments env)
-    (get-environment (cons function (list num-arguments)) env)))
+  (lambda (function-signature env)
+    (get-environment function-signature env)))
 
 (define number-of-parameters
   (lambda (values-to-bind)
@@ -46,17 +63,19 @@
 ; and prepares a new environment that consists of the global environment with a
 ; new layer which contains only the call-by-value parameters bound.
 (define create-function-env
-  (lambda (formal-parameters values-to-bind env)
+  (lambda (formal-parameters values-to-bind env class)
     (if (= (length (filter (lambda (x) (not (eq? x '&))) formal-parameters)) (length values-to-bind))
       (bind-formal-parameters
         formal-parameters
         values-to-bind
         env
-        (add-layer (global-env-only env))) ;(this could just be in call-function ?)
+        (add-layer (global-env-only env))
+        class
+      )
       (error "Incorrect number of arguments!"))))
 
 (define bind-formal-parameters
-  (lambda (formal-parameter-list value-list env new-env)
+  (lambda (formal-parameter-list value-list env new-env class)
     (cond
       ((null? formal-parameter-list) new-env)
       (else (if (eq? (car formal-parameter-list) '&)
@@ -71,5 +90,5 @@
                 (cdr formal-parameter-list)
                 (cdr value-list)
                 env
-                (add-to-environment (car formal-parameter-list) (interpret-stmt-value (car value-list) env) new-env)))))))
+                (add-to-environment (car formal-parameter-list) (interpret-stmt-value (car value-list) env class 'noobject) new-env)))))))
 

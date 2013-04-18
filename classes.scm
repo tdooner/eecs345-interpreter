@@ -48,12 +48,24 @@
   (lambda (classname env)
     (car (get-class classname env))))
 
+; returns the *name* of the parent class:
+(define get-class-parent
+  (lambda (classname env)
+    (caddr (get-class classname env))))
+
 (define interpret-dot-value
   (lambda (class binding env)
     (get-environment binding (get-class-parsetree class env))))
 
 (define interpret-function-in-class
-  (lambda (stmt env)
+  (lambda (stmt env class object)
     (if (list? (cadr stmt))
-      (call-function (caddr (cadr stmt)) (cddr stmt) (get-class-parsetree (cadr (cadr stmt)) env))
-      (call-function (cadr stmt) (cddr stmt) env))))
+      ; if a (dot A f) part is provided
+      (let*
+        ((dot-expr (cadr stmt))
+         (class-name (cadr dot-expr))
+         (function-name (caddr dot-expr))
+         (function-params (cddr stmt)))
+        (call-function function-name function-params env class-name))
+      ; if the function is called in the current class
+      (call-function (cadr stmt) (cddr stmt) env 'Main))))

@@ -16,6 +16,13 @@
   (lambda (binding level)
     (member? binding (car level))))
 
+(define declared-in-environment?
+  (lambda (binding env)
+    (cond
+      ((null? env) #f)
+      ((declared? binding (car env)) #t)
+      (else (declared? binding (del-layer env))))))
+
 ; Helper function to add to the environment with the value 'None and return the
 ; new environment
 (define add-to-environment
