@@ -102,7 +102,7 @@
       ((number? stmt) stmt)
       ((atom? stmt) (get-environment stmt env))
       ((eq? (car stmt) 'dot) (interpret-dot-value (cadr stmt) (caddr stmt) env))
-      ((eq? (car stmt) 'funcall) (call-function (cadr stmt) (cddr stmt) env class))
+      ((eq? (car stmt) 'funcall) (interpret-function-in-class stmt env class object))
       ((eq? (car stmt) '=) (interpret-assign-value stmt env class object))
       ((eq? (car stmt) '+) ((interpret-binary +) stmt env class object))
       ((eq? (car stmt) '-) (interpret-negative stmt env class object))
