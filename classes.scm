@@ -21,23 +21,23 @@
 (define interpret-class
   (lambda (name extends body env)
     (add-to-environment name
-      (cons (interpret-class-body-list body env)
+      (cons (interpret-class-body-list body env name 'noobjectsyet!)
         (cons '()       ; no instance variables in this assignment!
           (cons (if (null? extends) 'None (cadr extends)) '())))
       env)
 ))
 
 (define interpret-class-body-list
-  (lambda (parsetree env)
+  (lambda (parsetree env class object)
     (cond
       ((null? parsetree) env)
-      (else (interpret-class-body-list (cdr parsetree) (interpret-class-body (car parsetree) env))))))
+      (else (interpret-class-body-list (cdr parsetree) (interpret-class-body (car parsetree) env class object) class object)))))
 
 (define interpret-class-body
-  (lambda (stmt env)
+  (lambda (stmt env class object)
     (cond
-      ((eq? (car stmt) 'static-function) (interpret-declare-function stmt env))
-      ((eq? (car stmt) 'static-var) (interpret-declare stmt env))
+      ((eq? (car stmt) 'static-function) (interpret-declare-function stmt env class object))
+      ((eq? (car stmt) 'static-var) (interpret-declare stmt env class object))
 )))
 
 (define get-class

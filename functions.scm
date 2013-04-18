@@ -7,7 +7,7 @@
 ; inserts the body of the function into the environment a tuple of (other 1)
 ; because this definition takes one formal parameter
 (define interpret-declare-function
-  (lambda (stmt env)
+  (lambda (stmt env class object)
     ; the function closure:
     (add-to-environment
       (cons (cadr stmt) (list (number-of-parameters (caddr stmt))))
