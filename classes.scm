@@ -42,14 +42,18 @@
 
 (define get-class
   (lambda (classname env)
-    (car (get-environment classname env)))) ; <---- THIS ONLY RETURNS THE CODE TO RUN FOR THE FUNCTION AND NOT THE PARENT CLASS INFO
+    (get-environment classname env)))
+
+(define get-class-parsetree
+  (lambda (classname env)
+    (car (get-class classname env))))
 
 (define interpret-dot-value
   (lambda (class binding env)
-    (get-environment binding (get-class class env))))
+    (get-environment binding (get-class-parsetree class env))))
 
 (define interpret-function-in-class
   (lambda (stmt env)
     (if (list? (cadr stmt))
-      (call-function (caddr (cadr stmt)) (cddr stmt) (get-class (cadr (cadr stmt)) env))
+      (call-function (caddr (cadr stmt)) (cddr stmt) (get-class-parsetree (cadr (cadr stmt)) env))
       (call-function (cadr stmt) (cddr stmt) env))))

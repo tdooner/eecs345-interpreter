@@ -21,7 +21,7 @@
     (let ((env (interpret-global-statement-list (parser filename) the-begin-environment)))
       ;(display (get-environment 'main (get-class (string->symbol class) env))) ; debug
       (display (true-or-falsify
-        (call-function 'main '() (get-class (string->symbol class) env))))
+        (call-function 'main '() (get-class-parsetree (string->symbol class) env))))
     )
 ))
 ; (define interpret (lambda (file) (display (parser file)))) ; DEBUG ONLY

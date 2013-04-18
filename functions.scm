@@ -17,10 +17,12 @@
   (lambda (function values-to-bind env)
     (get-environment 'return
       (call/cc (lambda (ret)
-                 (let
-                   ((funcenv (add-to-environment 'returnfunc ret (create-function-env (car (get-function function (number-of-parameters values-to-bind) env)) values-to-bind env))))
-                   ;(begin (display "\nrunning the code for: ") (display function) (display "\n") (display (cadr (get-environment function env))) (display "\n") (display env) (display "\n")
-                   (interpret-statement-list (cadr (get-function function (number-of-parameters values-to-bind) env)) funcenv)))))))
+                 (let*
+                   (
+                    (func (get-function function (number-of-parameters values-to-bind) env))
+                    (funcenv (add-to-environment 'returnfunc ret (create-function-env (car func) values-to-bind env)))
+                   )
+                   (interpret-statement-list (cadr func) funcenv)))))))
 
 ; gets the appropriately overloaded function from the environment
 ; returns the tuple containing first the formal parameters and second the code
