@@ -179,7 +179,15 @@
 ; Returns updated environment
 (define interpret-assign
   (lambda (stmt env class object)
-    (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env class object) env)))
+    (let
+      (
+       (binding (cadr stmt))
+       (value (interpret-stmt-value (caddr stmt) env class object))
+      )
+      (cond
+        ((declared-in-environment? binding env) (update-environment binding value env))
+        ((is-static-variable-in-class? binding class env)
+         (update-environment class (with-rest-of-class (update-environment binding value (get-class-parsetree class env)) class env) env))))))
 
 ; Handles '(= x (+ x 1))
 ; Returns value, which is just the value of the caddr of it.
