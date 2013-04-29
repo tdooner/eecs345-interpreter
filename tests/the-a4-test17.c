@@ -10,7 +10,7 @@ class Main {
   }
 
   static main() {
-    return A.add(A.x, y);
+    return Main.add(Main.x, y);
   }
 }
 
