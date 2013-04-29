@@ -2,7 +2,7 @@ description: Basic class extensions work
 value: 5
 
 class A {
-  value() {
+  static value() {
     return 5;
   }
 }
