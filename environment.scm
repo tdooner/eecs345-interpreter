@@ -62,7 +62,7 @@
 (define update-environment
   (lambda (binding value env)
     (cond
-      ((null? env) (error "Error: Trying to assign to an undeclared variable!"))
+      ((null? env) (error "Error: Trying to assign to an undeclared variable: " binding))
       ((member? binding (car (car env)))
        (cons (set-layer binding value (car env)) (cdr env)))
       (else

@@ -99,7 +99,7 @@
     (cond
       ((null? stmt) 'None)
       ((number? stmt) stmt)
-      ((atom? stmt) (interpret-atom stmt env class object))
+      ((atom? stmt) (interpret-atom-value stmt env class object))
       ((eq? (car stmt) 'dot) (interpret-dot-value (cadr stmt) (caddr stmt) env))
       ((eq? (car stmt) 'funcall) (interpret-function-in-class stmt env class object))
       ((eq? (car stmt) '=) (interpret-assign-value stmt env class object))
@@ -111,7 +111,7 @@
       ((boolean-stmt? stmt) (interpret-bool-value stmt env class object))
 )))
 
-(define interpret-atom
+(define interpret-atom-value
   (lambda (binding env class object)
     (cond
       ((declared-in-environment? binding env) (get-environment binding env))
@@ -155,7 +155,7 @@
 (define interpret-bool-value
   (lambda (stmt env class object)
     (cond
-      ((atom? stmt) (get-environment stmt env))
+      ((atom? stmt) (interpret-atom-value stmt env class object))
       ((eq? (car stmt) '==) ((interpret-binary eq?) stmt env class object))
       ((eq? (car stmt) '!=) ((interpret-binary (lambda (x y) (not (eq? x y)))) stmt env class object))
       ((eq? (car stmt) '<) ((interpret-binary <) stmt env class object))
@@ -194,8 +194,8 @@
 (define interpret-assign-value
   (lambda (stmt env class object)
     (cond
-      ((number? (caddr stmt)) (get-environment (cadr stmt) (update-environment (cadr stmt) (caddr stmt) env)))
-      (else (get-environment (cadr stmt) (update-environment (cadr stmt) (interpret-stmt-value (caddr stmt) env class object) env))))))
+      ((number? (caddr stmt)) (interpret-atom-value (cadr stmt) (interpret-assign stmt env class object) class object))
+      (else (interpret-atom-value (cadr stmt) (interpret-assign stmt env class object) class object)))))
 
 ; Helper function to abstract out binary operations like < > + - && ||, etc.
 (define interpret-binary
