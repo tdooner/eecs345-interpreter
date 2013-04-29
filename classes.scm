@@ -71,6 +71,10 @@
   (lambda (classname env)
     (caddr (get-class classname env))))
 
+(define is-static-variable-in-class?
+  (lambda (binding class env)
+    (declared-in-environment? binding (get-class-parsetree class env))))
+
 (define interpret-dot-value
   (lambda (class binding env)
     (get-environment binding (get-class-parsetree class env))))

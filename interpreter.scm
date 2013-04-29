@@ -99,7 +99,7 @@
     (cond
       ((null? stmt) 'None)
       ((number? stmt) stmt)
-      ((atom? stmt) (get-environment stmt env))
+      ((atom? stmt) (interpret-atom stmt env class object))
       ((eq? (car stmt) 'dot) (interpret-dot-value (cadr stmt) (caddr stmt) env))
       ((eq? (car stmt) 'funcall) (interpret-function-in-class stmt env class object))
       ((eq? (car stmt) '=) (interpret-assign-value stmt env class object))
@@ -110,6 +110,14 @@
       ((eq? (car stmt) '%) ((interpret-binary remainder) stmt env class object))
       ((boolean-stmt? stmt) (interpret-bool-value stmt env class object))
 )))
+
+(define interpret-atom
+  (lambda (binding env class object)
+    (cond
+      ((declared-in-environment? binding env) (get-environment binding env))
+      ((is-static-variable-in-class? binding class env) (interpret-dot-value class binding env))
+      (else (error "Error: Cannot determine value of variable binding!")))
+))
 
 ; Handles '(return x)
 ; Returns updated environment
