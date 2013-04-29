@@ -25,7 +25,7 @@
       ;(display "okay, executing main. the environment is:") (pretty-print env) (display "\n")
       ;(display (get-environment 'main (get-class (string->symbol class) env))) ; debug
       (display (true-or-falsify
-        (call-function 'main '() env class-name)))
+        (call-function 'main '() env class-name 'None)))
     )
 ))
 ; (define interpret (lambda (file) (display (parser file)))) ; DEBUG ONLY
@@ -115,7 +115,12 @@
 ; Returns updated environment
 (define interpret-ret
   (lambda (stmt env class object)
-    ((get-environment 'returnfunc env) (update-environment 'return (interpret-stmt-value (cadr stmt) env class object) env))))
+    (begin
+      ;(display "about to call continutation in env\n")
+      (let
+        ((return-env (update-environment 'return (interpret-stmt-value (cadr stmt) env class object) env)))
+        ;(pretty-print return-env)
+        ((get-environment 'returnfunc return-env) return-env)))))
 
 ; Handles '(if (...) (...) (...))
 ; Returns updated environment

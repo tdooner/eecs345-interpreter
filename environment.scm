@@ -21,7 +21,7 @@
     (cond
       ((null? env) #f)
       ((declared? binding (car env)) #t)
-      (else (declared? binding (del-layer env))))))
+      (else (declared-in-environment? binding (del-layer env))))))
 
 ; Helper function to add to the environment with the value 'None and return the
 ; new environment
@@ -136,5 +136,4 @@
   (lambda (env)
     (cond
       ((null? (cdr env)) env)
-      ((null? (cddr env)) env)
       (else global-env-only (cdr env)))))

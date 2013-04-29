@@ -84,6 +84,6 @@
          (class-name (if (eq? (cadr dot-expr)'super) (get-class-parent class env) (cadr dot-expr)))
          (function-name (caddr dot-expr))
          (function-params (cddr stmt)))
-        (call-function function-name function-params env class-name))
+        (call-function function-name function-params env class-name 'None))
       ; if the function is called in the current class
-      (call-function (cadr stmt) (cddr stmt) env class))))
+      (call-function (cadr stmt) (cddr stmt) env class 'None))))

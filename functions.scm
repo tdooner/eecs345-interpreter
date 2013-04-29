@@ -22,42 +22,64 @@
 )))
 
 (define call-function
-  (lambda (function values-to-bind env class) ;todo next assignment: add "object" to this
-    ;(print "Trying to call function ")
-    ;(print function)
-    ;(display " in class ") (display class) (display "\n")
+  (lambda (function values-to-bind env class object)
+    (get-environment 'return
+      (call/cc (lambda (ret)
+        (call-function-sub function values-to-bind (add-to-environment 'returnfunc ret (add-layer (global-env-only env))) class object))))))
 
+(define call-function-sub
+  (lambda (function values-to-bind env class object)
     (let*
       (
-       (prev-env (car env))
-       (class-env (cons (car (get-class-parsetree class env)) (global-env-only env))) ; this is a magical "car" <- it makes things work
-       ;(_ (pretty-print class-env))
        (function-signature (cons function (list (number-of-parameters values-to-bind))))
+       ;(_ (begin (display "Trying to call function ") (pretty-print function-signature)))
+       (class-env (get-class-parsetree class env))
+       ;(_ (begin (display " in env ") (pretty-print class-env)))
+       (exists-in-object? #f) ;todo <----
        (exists-in-class? (declared-in-environment? function-signature class-env))
+       ;(prev-env (car env))
+       ;(class-env (cons (car (get-class-parsetree class env)) (global-env-only env))) ; this is a magical "car" <- it makes things work
+       ;(_ (pretty-print class-env))
       )
+
+
+      ;(print "Does it exist in the class?")
+      ;(pretty-print exists-in-class?)
+      ;(pretty-print class-env)
+
+      (if exists-in-object?
+        (display "then we should call the function in the object")
+        ; if the method is not in the object, look in the parent class:
+        (if exists-in-class?
+          (let*
+            (
+             (func (get-function function-signature class-env))
+             (function-env (create-function-env (car func) values-to-bind env class))
+             ;(_ (begin
+             ;     (display "Calling function")
+             ;     (pretty-print func)
+             ;     (display " with env: ")
+             ;     (pretty-print function-env)))
+            )
+            ; (display "Calling!\n")
+            (interpret-statement-list (cadr func) function-env class 'noobjecthere)
+          )
+
+          ; if not exists-in-class? then:
+          ((if (eq? (get-class-parent class env) 'None)
+                    (error "Error: Could not find function definition for " function)
+                    (call-function-sub function values-to-bind env (get-class-parent class env) object))))
+
+      ))))
 
       ;(display "We will call that function with environment: ")
 
-      (if exists-in-class?
-        ; if the function signature exists in the current class, call it!
-        (get-environment 'return
-          (call/cc (lambda (ret)
-                     (let*
-                       (
-                        (func (get-function function-signature class-env))
-                        ;(_ (begin (display "Going to bind values: ") (pretty-print values-to-bind)))
-                        (function-env (add-to-environment 'returnfunc ret (create-function-env (car func) values-to-bind (cons prev-env class-env) class)))
-                        ;(_ (pretty-print function-env))
-                       )
-                       ; (display "Calling!\n")
-                       (interpret-statement-list (cadr func) function-env class 'noobjecthere))))
-        )
-        ; if the function signature doesn't exist in the current class, try
-        ; to call the method on its parent class, if a parent class exists
-        ((if (eq? (get-class-parent class env) 'None)
-          (error "Error: Could not find function definition for " function)
-          (call-function function values-to-bind env (get-class-parent class env))))
-))))
+;      (if exists-in-class?
+;        ; if the function signature exists in the current class, call it!
+;        ; if the function signature doesn't exist in the current class, try
+;        ; to call the method on its parent class, if a parent class exists
+;        )))
+
 
 ; gets the appropriately overloaded function from the environment
 ;   function-signature is something like: (main 0)
@@ -88,7 +110,7 @@
         formal-parameters
         values-to-bind
         env
-        (add-layer (global-env-only env))
+        (add-to-environment 'return 'None env)
         class
       )
       (error "Incorrect number of arguments!"))))
