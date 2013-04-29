@@ -14,6 +14,6 @@ class Main {
   }
 
   static main() {
-    return A.add(x, y) + A.add(x, y, y) * 10;
+    return Main.add(x, y) + Main.add(x, y, y) * 10;
   }
 }
