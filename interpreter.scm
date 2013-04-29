@@ -113,10 +113,11 @@
 
 (define interpret-atom-value
   (lambda (binding env class object)
+    ;(display "looking up binding ") (display binding) (display "\n in class: ") (pretty-print class) (pretty-print env)
     (cond
       ((declared-in-environment? binding env) (get-environment binding env))
       ((is-static-variable-in-class? binding class env) (interpret-dot-value class binding env))
-      (else (error "Error: Cannot determine value of variable binding!")))
+      (else (error "Error: Cannot determine value of variable binding! " class)))
 ))
 
 ; Handles '(return x)

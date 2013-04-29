@@ -76,11 +76,23 @@
 
 (define is-static-variable-in-class?
   (lambda (binding class env)
-    (declared-in-environment? binding (get-class-parsetree class env))))
+    (if (declared-in-environment? binding (get-class-parsetree class env))
+      #t
+      (let
+        ((parent-class (get-class-parent class env)))
+        (if (eq? parent-class 'None)
+          #f
+          (is-static-variable-in-class? binding parent-class env))))))
 
 (define interpret-dot-value
   (lambda (class binding env)
-    (get-environment binding (get-class-parsetree class env))))
+    (if (declared-in-environment? binding (get-class-parsetree class env))
+      (get-environment binding (get-class-parsetree class env))
+      (let
+        ((parent-class (get-class-parent class env)))
+        (if (eq? parent-class 'None)
+          (error "Could not find static variable " binding)
+          (interpret-dot-value parent-class binding env))))))
 
 (define interpret-function-in-class
   (lambda (stmt env class object)

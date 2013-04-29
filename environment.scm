@@ -108,7 +108,7 @@
 (define get-environment-box
   (lambda (binding env)
     (cond
-      ((null? env) (error "Error: Variable " binding " has not been declared yet!"))
+      ((null? env) (error "Error: Box variable " binding " has not been declared yet!"))
       ((member? binding (caar env)) (get-from-layer-box binding (car env)))
       (else (get-environment-box binding (cdr env))))))
 

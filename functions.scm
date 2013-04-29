@@ -25,17 +25,16 @@
   (lambda (function values-to-bind env class object)
     (get-environment 'return
       (call/cc (lambda (ret)
-        (call-function-sub function values-to-bind env class object ret))))))
+        (call-function-sub function values-to-bind env class class object ret))))))
 
 (define call-function-sub
-  (lambda (function values-to-bind env class object returnfunc)
+  (lambda (function values-to-bind env orig-class class object returnfunc)
     (let*
       (
        (function-signature (cons function (list (number-of-parameters values-to-bind))))
        ;(_ (begin (display "Trying to call function ") (pretty-print function-signature)))
        (class-env (get-class-parsetree class env))
        ;(_ (begin (display " in env ") (pretty-print class-env)))
-       ;(_ (begin (display " in env ") (pretty-print env)))
        (exists-in-object? #f) ;todo <----
        (exists-in-class? (declared-in-environment? function-signature class-env))
        ;(prev-env (car env))
@@ -55,10 +54,13 @@
           (let*
             (
              (func (get-function function-signature class-env))
-             (function-env (add-to-environment 'returnfunc returnfunc (create-function-env (car func) values-to-bind env class)))
              ;(_ (begin
              ;     (display "Calling function")
              ;     (pretty-print func)
+             ;     (display " in class: ")
+             ;     (pretty-print class)))
+             (function-env (add-to-environment 'returnfunc returnfunc (create-function-env (car func) values-to-bind env orig-class)))
+             ;(_ (begin
              ;     (display " with env: ")
              ;     (pretty-print function-env)))
             )
@@ -69,7 +71,7 @@
           ; if not exists-in-class? then:
           ((if (eq? (get-class-parent class env) 'None)
                     (error "Error: Could not find function definition for " function)
-                    (call-function-sub function values-to-bind env (get-class-parent class env) object returnfunc))))
+                    (call-function-sub function values-to-bind env orig-class (get-class-parent class env) object returnfunc))))
 
       ))))
 
@@ -118,6 +120,12 @@
 
 (define bind-formal-parameters
   (lambda (formal-parameter-list value-list env new-env class)
+    ;(display "binding formal parameters: ")
+    ;(pretty-print value-list)
+    ;(display "from: ")
+    ;(pretty-print class)
+    ;(display "to: ")
+    ;(pretty-print formal-parameter-list)
     (cond
       ((null? formal-parameter-list) new-env)
       (else (if (eq? (car formal-parameter-list) '&)
@@ -135,7 +143,7 @@
                 (cdr value-list)
                 env
                 (add-to-environment (car formal-parameter-list) (interpret-stmt-value (car value-list) env class 'noobject) new-env)
-              class
+                class
               )
 )))))
 
