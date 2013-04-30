@@ -6,6 +6,7 @@
 (load "environment.scm")
 (load "functions.scm")
 (load "classes.scm")
+(load "objects.scm")
 
 (define the-begin-environment
   (add-to-environment 'true #t
@@ -74,6 +75,7 @@
            (boolean-stmt? stmt))
        (interpret-stmt (caddr stmt) (interpret-stmt (cadr stmt) env class object) class object))
 
+      ((eq? (car stmt) 'new) env) ; todo: when we add constructors, allow for side effects
       ((eq? (car stmt) 'begin) (interpret-block stmt env class object))
       ((eq? (car stmt) 'while) (call/cc (lambda (break) (interpret-while stmt (add-to-environment 'break break (add-layer env)) class object))))
       ((eq? (car stmt) 'break) ((get-environment 'break env) (del-layer (del-layer env))))
@@ -100,6 +102,7 @@
       ((null? stmt) 'None)
       ((number? stmt) stmt)
       ((atom? stmt) (interpret-atom-value stmt env class object))
+      ((eq? (car stmt) 'new) (interpret-instantiate-value stmt env class object))
       ((eq? (car stmt) 'dot) (interpret-dot-value (cadr stmt) (caddr stmt) env))
       ((eq? (car stmt) 'funcall) (interpret-function-in-class stmt env class object))
       ((eq? (car stmt) '=) (interpret-assign-value stmt env class object))
@@ -188,7 +191,7 @@
       (cond
         ((declared-in-environment? binding env) (update-environment binding value env))
         ((is-static-variable-in-class? binding class env)
-         (update-environment class (with-rest-of-class (update-environment binding value (get-class-parsetree class env)) class env) env))))))
+         (update-environment class (replace-parsetree (update-environment binding value (get-class-parsetree class env)) class env) env))))))
 
 ; Handles '(= x (+ x 1))
 ; Returns value, which is just the value of the caddr of it.

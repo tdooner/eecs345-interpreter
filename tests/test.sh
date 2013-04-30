@@ -22,7 +22,7 @@ echo -en "$WHITE + $1 | $desc"
 
 rm -f tests/temp.c
 
-if [ ! `echo $1 | egrep 'assignment4|the-a4'` ]; then
+if [ ! `echo $1 | egrep 'assignment4|the-a4|a5'` ]; then
   echo "class Main {" >> tests/temp.c
 fi
 if [ `echo $1 | egrep 'the-a(1|2)'` ]; then
@@ -32,7 +32,7 @@ tail -n +3 "$1" >> tests/temp.c
 if [ `echo $1 | egrep 'the-a(1|2)'` ]; then
   echo -n "}" >> tests/temp.c
 fi
-if [ ! `echo $1 | egrep 'assignment4|the-a4'` ]; then
+if [ ! `echo $1 | egrep 'assignment4|the-a4|a5'` ]; then
   echo -n "}" >> tests/temp.c
 fi
 

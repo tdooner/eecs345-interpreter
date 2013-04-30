@@ -6,15 +6,28 @@
 ;
 ; inserts the body of the function into the environment a tuple of (other 1)
 ; because this definition takes one formal parameter
-(define interpret-declare-function
+(define interpret-declare-static-function
   (lambda (stmt env class object)
     (let*
       (
        (function-signature (cons (cadr stmt) (list (number-of-parameters (caddr stmt))))) ; (funcname 3)
        (function-body (cddr stmt))
-       (with-rest-of-class (lambda (v) (cons v (cdr (get-class class env)))))
       )
-      (update-environment class (with-rest-of-class (add-to-environment function-signature function-body (get-class-parsetree class env))) env)
+      (update-environment class (replace-parsetree (add-to-environment function-signature function-body (get-class-parsetree class env)) class env) env)
+    ; the function closure:
+    ;(add-to-environment
+    ;  (cons (cadr stmt) (list (number-of-parameters (caddr stmt))))
+    ;  (cddr stmt) env)
+)))
+
+(define interpret-declare-instance-function
+  (lambda (stmt env class object)
+    (let*
+      (
+       (function-signature (cons (cadr stmt) (list (number-of-parameters (caddr stmt))))) ; (funcname 3)
+       (function-body (cddr stmt))
+      )
+      (update-environment class (replace-instance-stuff (add-to-environment function-signature function-body (get-class-instance-stuff class env)) class env) env)
     ; the function closure:
     ;(add-to-environment
     ;  (cons (cadr stmt) (list (number-of-parameters (caddr stmt))))

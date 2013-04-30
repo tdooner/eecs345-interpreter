@@ -4,8 +4,8 @@
 
 ; interprets the class and returns an environment with the class added to it
 ; The class object contains:
-;   [1] The environment of class (static) variables.
-;   [2] The environment of instance variables, initialized to 'None
+;   [1] The environment of class (static) variables and methods
+;   [2] The environment of instance variables and methods
 ;   [3] Parent class name
 ;   (todo: also return "initial environment"?)
 ; e.g.
@@ -22,7 +22,7 @@
   (lambda (name extends body env)
     (let*
       ((extends (if (null? extends) 'None (cadr extends))) ;just the name of the class
-      (empty-class (cons '((()())) (cons '() (list extends)))) ; '((()()) () 'Parent)
+      (empty-class (cons '((()())) (cons '((()())) (list extends)))) ; '((()()) () 'Parent)
       (env (add-to-environment name empty-class env)))
 
       ;(cons (interpret-class-body-list body env name 'noobjectsyet!)
@@ -42,8 +42,11 @@
 (define interpret-class-body
   (lambda (stmt env class object)
     (cond
-      ((eq? (car stmt) 'static-function) (interpret-declare-function stmt env class object))
+      ((eq? (car stmt) 'static-function) (interpret-declare-static-function stmt env class object))
       ((eq? (car stmt) 'static-var) (interpret-declare-static-var stmt env class object))
+      ((eq? (car stmt) 'var) (interpret-declare-instance-var stmt env class object))
+      ((eq? (car stmt) 'function) (interpret-declare-instance-function stmt env class object))
+      (else (error "Unknown statement!"))
 )))
 
 (define interpret-declare-static-var
@@ -55,11 +58,28 @@
        (value (if (null? (cddr stmt)) 'None (interpret-stmt-value (caddr stmt) class-env class object)))
       )
       ;(display "setting static var with env: ") (pretty-print (get-class-parsetree class class-env))
-      (update-environment class (with-rest-of-class (add-to-environment binding value (get-class-parsetree class env)) class env) env))))
+      (update-environment class (replace-parsetree (add-to-environment binding value (get-class-parsetree class env)) class env) env))))
 
-(define with-rest-of-class
+(define interpret-declare-instance-var
+  (lambda (stmt env class object)
+    (let*
+      (
+       (class-env (cons (car (get-class-parsetree class env)) env))
+       (binding (cadr stmt))
+       (value (if (null? (cddr stmt)) 'None (interpret-stmt-value (caddr stmt) class-env class object)))
+      )
+      ;(display "setting static var with env: ") (pretty-print (get-class-parsetree class class-env))
+      (update-environment class (replace-instance-stuff (add-to-environment binding value (get-class-instance-stuff class env)) class env) env))))
+
+(define replace-parsetree
   (lambda (parsetree classname env)
     (cons parsetree (cdr (get-class classname env)))))
+
+(define replace-instance-stuff
+  (lambda (instance-stuff classname env)
+    (let
+      ((class (get-class classname env)))
+      (cons (car class) (cons instance-stuff (cddr class))))))
 
 (define get-class
   (lambda (classname env)
@@ -68,6 +88,10 @@
 (define get-class-parsetree
   (lambda (classname env)
     (car (get-class classname env))))
+
+(define get-class-instance-stuff    ; naming things is hard...
+  (lambda (classname env)
+    (cadr (get-class classname env))))
 
 ; returns the *name* of the parent class:
 (define get-class-parent
